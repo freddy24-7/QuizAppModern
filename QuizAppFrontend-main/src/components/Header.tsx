@@ -8,19 +8,19 @@ const Header = () => {
   return (
     <>
       <header
-        className="fixed top-0 w-full bg-sky-100/90 backdrop-blur-sm border-b border-sky-200 z-50"
+        className="fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-border z-50"
         role="banner"
       >
-        <div className="w-full px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-sky-900">
+        <div className="max-w-6xl mx-auto px-6 h-14 flex justify-between items-center">
+          <h1 className="text-lg font-semibold tracking-tight text-foreground">
             <span className="sr-only">Quiz Generator</span>
-            QuizGenerator
+            <span className="text-primary">Quiz</span>Generator
           </h1>
           <nav aria-label="Main navigation">
             <Button
               variant="ghost"
-              size="lg"
-              className="text-lg font-semibold text-sky-700 hover:text-sky-900 hover:bg-sky-200/50 transition-colors"
+              size="sm"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               aria-label="About Quiz Generator"
               onClick={() => setShowAbout(true)}
             >

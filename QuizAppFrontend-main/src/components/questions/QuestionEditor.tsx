@@ -40,9 +40,9 @@ const QuestionEditor: React.FC<Props> = ({
   const textareaErrorId = `q${questionIndex}-text-error`;
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <Label htmlFor={textareaId} className="text-base">
+    <div className="space-y-5">
+      <div className="space-y-2">
+        <Label htmlFor={textareaId} className="text-sm">
           Question Text
         </Label>
         <Textarea
@@ -52,21 +52,22 @@ const QuestionEditor: React.FC<Props> = ({
           placeholder="Enter your question"
           aria-describedby={questionTextError ? textareaErrorId : undefined}
           aria-invalid={!!questionTextError}
-          className="min-h-[100px]"
+          className="min-h-[80px] text-sm"
         />
         {questionTextError && (
-          <p id={textareaErrorId} className="text-red-500 text-sm" role="alert">
+          <p id={textareaErrorId} className="text-destructive text-xs" role="alert">
             {questionTextError}
           </p>
         )}
       </div>
 
-      <div className="space-y-4">
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          Mark correct answer(s)
-        </p>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-medium text-foreground">Answer Options</p>
+          <p className="text-xs text-muted-foreground">Check the correct answer(s)</p>
+        </div>
         {noCorrectError && (
-          <p className="text-red-500 text-sm" role="alert">
+          <p className="text-destructive text-xs" role="alert">
             {noCorrectError}
           </p>
         )}
@@ -90,9 +91,9 @@ const QuestionEditor: React.FC<Props> = ({
           onClick={onAddOption}
           variant="outline"
           size="sm"
-          className="mt-2"
+          className="mt-1 text-xs border-dashed"
         >
-          Add Option
+          + Add Option
         </Button>
       </div>
     </div>

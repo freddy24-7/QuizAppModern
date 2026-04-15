@@ -213,33 +213,33 @@ const QuizResponse = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-sky-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="max-w-md mx-auto mt-8 p-6 bg-red-50 rounded-lg">
-        <p className="text-red-600">{error}</p>
+      <div className="max-w-md mx-auto mt-12 p-6 border border-destructive/20 bg-destructive/5 rounded-xl">
+        <p className="text-destructive text-sm">{error}</p>
       </div>
     );
   }
 
   if (success) {
     return (
-      <div className="max-w-md mx-auto mt-8 p-6 bg-green-50 rounded-lg">
-        <p className="text-green-600">{success}</p>
+      <div className="max-w-md mx-auto mt-12 p-6 border border-green-200 bg-green-50 rounded-xl">
+        <p className="text-green-700 text-sm">{success}</p>
       </div>
     );
   }
 
   if (isTimeUp) {
     return (
-      <div className="max-w-md mx-auto mt-8 p-6 bg-red-50 rounded-lg">
-        <p className="text-red-600 text-xl font-semibold mb-2">Time's Up!</p>
-        <p className="text-gray-700 mb-4">
-          You've run out of time to complete the quiz.
+      <div className="max-w-md mx-auto mt-12 p-6 border border-destructive/20 bg-destructive/5 rounded-xl">
+        <p className="text-destructive text-lg font-semibold mb-1">Time&apos;s Up!</p>
+        <p className="text-muted-foreground text-sm">
+          You&apos;ve run out of time to complete the quiz.
         </p>
       </div>
     );
@@ -247,34 +247,34 @@ const QuizResponse = () => {
 
   if (currentStep === 'username') {
     return (
-      <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold text-sky-900 mb-6">
-          Welcome to {quizData?.title || 'the Quiz'}
+      <div className="max-w-md mx-auto mt-12 p-6 bg-card border border-border rounded-xl">
+        <h2 className="text-xl font-semibold text-foreground mb-1">
+          {quizData?.title || 'Quiz'}
         </h2>
-        <form onSubmit={handleUsernameSubmit} className="space-y-6">
+        <p className="text-sm text-muted-foreground mb-6">Enter your name to begin.</p>
+        <form onSubmit={handleUsernameSubmit} className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="username" className="text-sm">Your Name</Label>
             <Input
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter your name"
               required
+              className="h-9 text-sm"
             />
           </div>
           <Button type="submit" className="w-full">
             Start Quiz
           </Button>
-          {quizData?.startTime && (
-            <p className="text-sm text-gray-600 mt-4">
-              Quiz starts at: {new Date(quizData.startTime).toLocaleString()}
-            </p>
-          )}
-          {quizData?.durationInSeconds && (
-            <p className="text-sm text-gray-600">
-              Duration: {Math.floor(quizData.durationInSeconds / 60)} minutes
-            </p>
-          )}
+          <div className="flex gap-4 text-xs text-muted-foreground">
+            {quizData?.startTime && (
+              <p>Starts: {new Date(quizData.startTime).toLocaleString()}</p>
+            )}
+            {quizData?.durationInSeconds && (
+              <p>Duration: {Math.floor(quizData.durationInSeconds / 60)} min</p>
+            )}
+          </div>
         </form>
       </div>
     );
@@ -282,42 +282,51 @@ const QuizResponse = () => {
 
   const currentQuestion = questions[currentQuestionIndex];
   return (
-    <div className="max-w-2xl mx-auto mt-8 p-6 bg-white rounded-lg shadow-lg">
-      <div className="mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <span className="text-sm text-sky-600">
+    <div className="max-w-2xl mx-auto mt-12 px-6">
+      <div className="bg-card border border-border rounded-xl p-6">
+        <div className="flex justify-between items-center mb-1">
+          <span className="text-xs text-muted-foreground">
             Question {currentQuestionIndex + 1} of {questions.length}
           </span>
-          <span className="text-sm text-sky-600">User: {username}</span>
+          <span className="text-xs text-muted-foreground">{username}</span>
         </div>
-        <h2 className="text-xl font-semibold text-sky-900 mb-4">
+
+        <div className="w-full bg-muted rounded-full h-1 mb-5">
+          <div
+            className="bg-primary h-1 rounded-full transition-all duration-300"
+            style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
+          />
+        </div>
+
+        <h2 className="text-lg font-semibold text-foreground mb-6">
           {currentQuestion.text}
         </h2>
-      </div>
 
-      <div className="flex justify-between items-center mb-6">
-        <div className="text-lg font-semibold text-sky-600">
-          Time Left: {formatTime(timeLeft)}
+        <div className="flex items-center gap-2 mb-5">
+          <span className={`text-sm font-medium tabular-nums ${timeLeft <= 30 ? 'text-destructive' : 'text-muted-foreground'}`}>
+            {formatTime(timeLeft)}
+          </span>
+          <span className="text-xs text-muted-foreground">remaining</span>
         </div>
-      </div>
 
-      <div className="space-y-4">
-        {currentQuestion.options.map((option, index) => (
-          <Button
-            key={index}
-            onClick={() => handleAnswerSubmit(option.text)}
-            variant="outline"
-            className="w-full text-left justify-start h-auto py-4 px-6 relative"
-            disabled={isSubmitting}
-          >
-            {option.text}
-            {isSubmitting && (
-              <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-sky-600"></div>
-              </div>
-            )}
-          </Button>
-        ))}
+        <div className="space-y-2">
+          {currentQuestion.options.map((option, index) => (
+            <Button
+              key={index}
+              onClick={() => handleAnswerSubmit(option.text)}
+              variant="outline"
+              className="w-full text-left justify-start h-auto py-3 px-4 text-sm relative hover:border-primary hover:bg-primary/5 transition-colors"
+              disabled={isSubmitting}
+            >
+              {option.text}
+              {isSubmitting && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-primary border-t-transparent"></div>
+                </div>
+              )}
+            </Button>
+          ))}
+        </div>
       </div>
     </div>
   );

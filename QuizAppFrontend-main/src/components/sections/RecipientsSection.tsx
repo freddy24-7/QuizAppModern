@@ -22,8 +22,8 @@ const RecipientsSection: React.FC<Props> = ({
   onAdd,
   onRemove,
 }) => (
-  <div className="space-y-4">
-    <p className="text-sm text-gray-600 dark:text-gray-400">
+  <div className="space-y-3">
+    <p className="text-xs text-muted-foreground">
       Enter phone numbers in E.164 format (e.g. +31612345678).
     </p>
 
@@ -32,7 +32,7 @@ const RecipientsSection: React.FC<Props> = ({
       const errorId = `participant-${i}-error`;
       return (
         <div key={i} className="space-y-1">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-3">
             <div className="flex-1">
               <Label htmlFor={inputId} className="sr-only">
                 Recipient {i + 1} phone number
@@ -44,22 +44,24 @@ const RecipientsSection: React.FC<Props> = ({
                 placeholder="+31612345678"
                 aria-describedby={errors[i] ? errorId : undefined}
                 aria-invalid={!!errors[i]}
-                className="h-12"
+                className="h-9 text-sm"
               />
             </div>
             {participants.length > 1 && (
               <Button
                 type="button"
                 onClick={() => onRemove(i)}
-                variant="destructive"
+                variant="ghost"
+                size="sm"
                 aria-label={`Remove recipient ${i + 1}`}
+                className="text-xs text-muted-foreground hover:text-destructive shrink-0"
               >
                 Remove
               </Button>
             )}
           </div>
           {errors[i] && (
-            <p id={errorId} className="text-red-500 text-sm" role="alert">
+            <p id={errorId} className="text-destructive text-xs" role="alert">
               {errors[i]}
             </p>
           )}
@@ -67,8 +69,8 @@ const RecipientsSection: React.FC<Props> = ({
       );
     })}
 
-    <Button type="button" onClick={onAdd} variant="outline">
-      Add Recipient
+    <Button type="button" onClick={onAdd} variant="outline" className="w-full border-dashed">
+      + Add Recipient
     </Button>
   </div>
 );

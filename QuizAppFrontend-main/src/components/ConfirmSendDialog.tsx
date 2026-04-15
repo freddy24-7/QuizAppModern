@@ -18,16 +18,16 @@ const ConfirmSendDialog: React.FC<Props> = ({
   onCancel,
 }) => (
   <Modal isOpen={isOpen} onClose={onCancel} title="Send Quiz?">
-    <p className="text-gray-600 dark:text-gray-400 mb-6">
-      You're about to send a quiz with {questionCount} question
+    <p className="text-sm text-muted-foreground mb-6">
+      You&apos;re about to send a quiz with {questionCount} question
       {questionCount !== 1 ? 's' : ''} to {participantCount} recipient
       {participantCount !== 1 ? 's' : ''} via SMS. This action cannot be undone.
     </p>
-    <div className="flex justify-end space-x-4">
-      <Button type="button" variant="outline" onClick={onCancel}>
+    <div className="flex justify-end gap-3">
+      <Button type="button" variant="outline" size="sm" onClick={onCancel}>
         Cancel
       </Button>
-      <Button type="button" onClick={onConfirm}>
+      <Button type="button" size="sm" onClick={onConfirm}>
         Send Quiz
       </Button>
     </div>

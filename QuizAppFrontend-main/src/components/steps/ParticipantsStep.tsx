@@ -38,8 +38,8 @@ const ParticipantsStep: React.FC<Props> = ({
     totalSteps={3}
   >
     <div className="space-y-6">
-      <div className="bg-sky-50 p-4 rounded-lg">
-        <p className="text-sky-700 text-sm">
+      <div className="bg-secondary p-4 rounded-lg">
+        <p className="text-secondary-foreground text-sm">
           Enter 10-digit phone numbers starting with 06 (e.g., 0612345678)
         </p>
       </div>
@@ -65,7 +65,7 @@ const ParticipantsStep: React.FC<Props> = ({
               pattern="06\d{8}"
             />
             {p.phoneNumber && !p.phoneNumber.match(/^06\d{8}$/) && (
-              <p className="text-red-500 text-sm mt-1">
+              <p className="text-destructive text-xs mt-1">
                 Must be 10 digits starting with 06
               </p>
             )}

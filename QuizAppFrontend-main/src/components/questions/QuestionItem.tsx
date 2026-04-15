@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { Button } from '../ui/button';
 import QuestionEditor from './QuestionEditor';
 
@@ -78,36 +79,38 @@ const QuestionItem: React.FC<Props> = ({
   const bodyId = `question-${index}-body`;
 
   return (
-    <div className="border rounded-lg" aria-labelledby={headerId}>
-      <div className="flex items-center justify-between p-4">
+    <div className="border border-border rounded-lg bg-card" aria-labelledby={headerId}>
+      <div className="flex items-center justify-between px-4 py-3">
         <button
           type="button"
           id={headerId}
           aria-expanded={isExpanded}
           aria-controls={bodyId}
           onClick={handleToggleExpanded}
-          className="flex-1 text-left font-medium flex items-center gap-2"
+          className="flex-1 text-left font-medium flex items-center gap-2 text-sm text-foreground"
         >
+          <ChevronDown
+            className={`size-4 shrink-0 text-muted-foreground transition-transform duration-200 ${isExpanded ? '' : '-rotate-90'}`}
+          />
           <span>Question {index + 1}</span>
           {!isExpanded && (
-            <span className="text-gray-500 font-normal text-sm">
+            <span className="text-muted-foreground font-normal text-xs truncate max-w-[200px]">
               — {questionPreview}
             </span>
           )}
-          {hasError && (
-            <span className="text-red-500 text-sm ml-1" aria-label="Has errors">
-              ●
-            </span>
+          {hasError && !isExpanded && (
+            <span className="inline-flex items-center justify-center size-2 rounded-full bg-destructive shrink-0" aria-label="Has errors" />
           )}
         </button>
 
         {canRemove && (
           <Button
             type="button"
-            variant="destructive"
+            variant="ghost"
             size="sm"
             onClick={handleRemove}
             aria-label={`Remove question ${index + 1}`}
+            className="text-xs text-muted-foreground hover:text-destructive"
           >
             Remove
           </Button>
@@ -115,7 +118,7 @@ const QuestionItem: React.FC<Props> = ({
       </div>
 
       {isExpanded && (
-        <div id={bodyId} className="px-4 pb-4">
+        <div id={bodyId} className="px-4 pb-4 border-t border-border pt-4">
           <QuestionEditor
             questionIndex={index}
             questionText={question.text}

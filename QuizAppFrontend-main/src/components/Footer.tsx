@@ -1,8 +1,8 @@
 const Footer = () => {
   return (
-    <footer className="w-full bg-sky-50/80 backdrop-blur-sm border-t border-sky-100">
-      <div className="w-full px-4 py-4 text-center text-sky-700">
-        <p>© 2024 QuizGenerator. All rights reserved.</p>
+    <footer className="w-full border-t border-border">
+      <div className="max-w-6xl mx-auto px-6 py-4 text-center text-sm text-muted-foreground">
+        <p>&copy; {new Date().getFullYear()} QuizGenerator</p>
       </div>
     </footer>
   );

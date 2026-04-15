@@ -406,18 +406,21 @@ const QuizForm = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-8 space-y-8">
+    <div className="max-w-3xl mx-auto px-6 py-10 space-y-10">
       <div aria-live="polite" className="sr-only">
         {submitStatus === 'sending' && 'Sending quiz...'}
         {submitStatus === 'success' && 'Quiz sent successfully.'}
         {submitStatus === 'error' && 'Failed to send quiz.'}
       </div>
 
-      <h1 className="text-4xl font-bold">Create a New Quiz</h1>
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Create a New Quiz</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Fill in the details below, add questions, and send to your recipients.</p>
+      </div>
 
       {/* Section 1: Quiz Info */}
-      <section aria-labelledby="section-info">
-        <h2 id="section-info" className="text-2xl font-semibold mb-4">
+      <section aria-labelledby="section-info" className="space-y-4">
+        <h2 id="section-info" className="text-base font-semibold text-foreground border-b border-border pb-2">
           Quiz Info
         </h2>
         <QuizInfoSection
@@ -431,30 +434,37 @@ const QuizForm = () => {
       </section>
 
       {/* Section 2: Questions */}
-      <section aria-labelledby="section-questions">
-        <div className="flex items-center justify-between mb-4">
-          <h2 id="section-questions" className="text-2xl font-semibold">
-            Questions ({quizData.questions.length})
+      <section aria-labelledby="section-questions" className="space-y-4">
+        <div className="flex items-center justify-between border-b border-border pb-2">
+          <h2 id="section-questions" className="text-base font-semibold text-foreground">
+            Questions
+            <span className="ml-1.5 text-xs font-normal text-muted-foreground">({quizData.questions.length})</span>
           </h2>
-          <div className="flex gap-2" role="group" aria-label="Question creation mode">
-            <Button
+          <div className="flex rounded-lg border border-border overflow-hidden" role="group" aria-label="Question creation mode">
+            <button
               type="button"
-              variant={questionMode === 'manual' ? 'default' : 'outline'}
-              size="sm"
               onClick={handleSwitchToManual}
               aria-pressed={questionMode === 'manual'}
+              className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                questionMode === 'manual'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-transparent text-muted-foreground hover:text-foreground hover:bg-muted'
+              }`}
             >
               Create manually
-            </Button>
-            <Button
+            </button>
+            <button
               type="button"
-              variant={questionMode === 'ai' ? 'default' : 'outline'}
-              size="sm"
               onClick={handleSwitchToAi}
               aria-pressed={questionMode === 'ai'}
+              className={`px-3 py-1.5 text-xs font-medium transition-colors border-l border-border ${
+                questionMode === 'ai'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-transparent text-muted-foreground hover:text-foreground hover:bg-muted'
+              }`}
             >
               Generate with AI
-            </Button>
+            </button>
           </div>
         </div>
 
@@ -485,17 +495,17 @@ const QuizForm = () => {
               type="button"
               variant="outline"
               onClick={handleAddQuestion}
-              className="mt-4"
+              className="mt-4 w-full border-dashed"
             >
-              Add Question
+              + Add Question
             </Button>
           </>
         )}
       </section>
 
       {/* Section 3: Recipients */}
-      <section aria-labelledby="section-recipients">
-        <h2 id="section-recipients" className="text-2xl font-semibold mb-4">
+      <section aria-labelledby="section-recipients" className="space-y-4">
+        <h2 id="section-recipients" className="text-base font-semibold text-foreground border-b border-border pb-2">
           Recipients
         </h2>
         <RecipientsSection
@@ -508,13 +518,13 @@ const QuizForm = () => {
       </section>
 
       {/* Section 4: Send */}
-      <section>
+      <section className="pt-4 border-t border-border">
         <h2 className="sr-only">Send Quiz</h2>
         <Button
           onClick={handleSendClick}
           disabled={isSubmitting}
           size="lg"
-          className="text-lg px-8"
+          className="w-full sm:w-auto text-base px-10 h-12 rounded-lg"
         >
           {isSubmitting ? 'Sending...' : 'Send Quiz'}
         </Button>

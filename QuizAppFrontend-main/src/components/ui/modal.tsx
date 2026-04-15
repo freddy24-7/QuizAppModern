@@ -26,27 +26,26 @@ export function Modal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-black/50" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       <div
         className={cn(
-          'relative z-50 w-full max-w-2xl bg-white rounded-lg shadow-lg p-8',
-          'dark:bg-gray-800',
+          'relative z-50 w-full max-w-lg bg-card rounded-xl border border-border shadow-lg p-6',
           className,
         )}
       >
-        <div className="mb-6">
+        <div className="mb-5">
           {currentStep && totalSteps && (
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-500 dark:text-gray-400">
+                <span className="text-xs text-muted-foreground">
                   Step {currentStep} of {totalSteps}
                 </span>
                 <button
                   onClick={onClose}
-                  className="p-2 hover:bg-gray-100 rounded-full dark:hover:bg-gray-700"
+                  className="p-1.5 hover:bg-muted rounded-md transition-colors text-muted-foreground hover:text-foreground"
                 >
                   <svg
-                    className="w-6 h-6"
+                    className="w-4 h-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -60,9 +59,9 @@ export function Modal({
                   </svg>
                 </button>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+              <div className="w-full bg-muted rounded-full h-1.5">
                 <div
-                  className="bg-sky-600 h-2 rounded-full transition-all duration-300 ease-in-out"
+                  className="bg-primary h-1.5 rounded-full transition-all duration-300 ease-in-out"
                   style={{ width: `${(currentStep / totalSteps) * 100}%` }}
                 />
               </div>
@@ -70,13 +69,13 @@ export function Modal({
           )}
           {!currentStep && (
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-semibold">{title}</h2>
+              <h2 className="text-lg font-semibold text-foreground">{title}</h2>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-full dark:hover:bg-gray-700"
+                className="p-1.5 hover:bg-muted rounded-md transition-colors text-muted-foreground hover:text-foreground"
               >
                 <svg
-                  className="w-6 h-6"
+                  className="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -93,9 +92,9 @@ export function Modal({
           )}
           {currentStep && (
             <div>
-              <h2 className="text-2xl font-semibold">{title}</h2>
+              <h2 className="text-lg font-semibold text-foreground">{title}</h2>
               {subtitle && (
-                <p className="text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-muted-foreground text-sm mt-1">
                   {subtitle}
                 </p>
               )}

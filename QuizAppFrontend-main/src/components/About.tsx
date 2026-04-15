@@ -12,7 +12,7 @@ const About: React.FC<AboutProps> = ({ isOpen, onClose }) => {
     {
       title: 'Background',
       content: (
-        <div className="space-y-4 text-gray-600">
+        <div className="space-y-4 text-muted-foreground text-sm">
           <p>
             QuizApp was created as a demonstration project to showcase the integration of modern web technologies:
           </p>
@@ -31,7 +31,7 @@ const About: React.FC<AboutProps> = ({ isOpen, onClose }) => {
     {
       title: 'How to Use',
       content: (
-        <div className="space-y-4 text-gray-600">
+        <div className="space-y-4 text-muted-foreground text-sm">
           <p>QuizApp allows you to create and participate in interactive quizzes with the following steps:</p>
           <ol className="list-decimal list-inside space-y-2">
             <li>Create a quiz by setting title and duration</li>
@@ -46,7 +46,7 @@ const About: React.FC<AboutProps> = ({ isOpen, onClose }) => {
     {
       title: 'Backend Tech Stack',
       content: (
-        <div className="space-y-4 text-gray-600">
+        <div className="space-y-4 text-muted-foreground text-sm">
           <p>The backend is built with:</p>
           <ul className="list-disc list-inside space-y-2">
             <li>Java 17+</li>
@@ -72,7 +72,7 @@ const About: React.FC<AboutProps> = ({ isOpen, onClose }) => {
     {
       title: 'Frontend Tech Stack',
       content: (
-        <div className="space-y-4 text-gray-600">
+        <div className="space-y-4 text-muted-foreground text-sm">
           <p>The frontend is built with:</p>
           <ul className="list-disc list-inside space-y-2">
             <li>React 18</li>
@@ -96,7 +96,7 @@ const About: React.FC<AboutProps> = ({ isOpen, onClose }) => {
     {
       title: 'GitHub Repos',
       content: (
-        <div className="space-y-4 text-gray-600">
+        <div className="space-y-4 text-muted-foreground text-sm">
           <p>The project is split into two repositories:</p>
           <div className="space-y-2">
             <p>Frontend Repository:</p>
@@ -104,7 +104,7 @@ const About: React.FC<AboutProps> = ({ isOpen, onClose }) => {
               href="https://github.com/freddy24-7/QuizAppFrontend"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sky-600 hover:underline break-all"
+              className="text-primary hover:underline break-all"
             >
               https://github.com/freddy24-7/QuizAppFrontend
             </a>
@@ -115,7 +115,7 @@ const About: React.FC<AboutProps> = ({ isOpen, onClose }) => {
               href="https://github.com/freddy24-7/QuizApp"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sky-600 hover:underline break-all"
+              className="text-primary hover:underline break-all"
             >
               https://github.com/freddy24-7/QuizApp
             </a>
@@ -126,7 +126,7 @@ const About: React.FC<AboutProps> = ({ isOpen, onClose }) => {
     {
       title: 'Other Info',
       content: (
-        <div className="space-y-4 text-gray-600">
+        <div className="space-y-4 text-muted-foreground text-sm">
           <div className="space-y-2">
             <p className="font-medium">Phone Number Format:</p>
             <p>The application is configured for Dutch phone numbers (starting with 06). This can be adjusted in the validation logic if needed for other regions.</p>
@@ -152,7 +152,7 @@ const About: React.FC<AboutProps> = ({ isOpen, onClose }) => {
       title="About QuizApp"
       subtitle="Learn more about our quiz application"
     >
-      <div className="mt-6 max-h-[70vh] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+      <div className="mt-4 max-h-[70vh] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-muted">
         <Accordion items={accordionItems} />
       </div>
     </Modal>

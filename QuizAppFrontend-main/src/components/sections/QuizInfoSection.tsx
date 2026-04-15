@@ -19,9 +19,9 @@ const QuizInfoSection: React.FC<Props> = ({
   onTitleChange,
   onDurationChange,
 }) => (
-  <div className="space-y-6">
-    <div className="space-y-2">
-      <Label htmlFor="quiz-title" className="text-base">
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+    <div className="space-y-2 sm:col-span-2">
+      <Label htmlFor="quiz-title" className="text-sm">
         Quiz Title
       </Label>
       <Input
@@ -31,17 +31,17 @@ const QuizInfoSection: React.FC<Props> = ({
         placeholder="Enter quiz title"
         aria-describedby={titleError ? 'quiz-title-error' : undefined}
         aria-invalid={!!titleError}
-        className="h-12"
+        className="h-9 text-sm"
       />
       {titleError && (
-        <p id="quiz-title-error" className="text-red-500 text-sm" role="alert">
+        <p id="quiz-title-error" className="text-destructive text-xs" role="alert">
           {titleError}
         </p>
       )}
     </div>
 
     <div className="space-y-2">
-      <Label htmlFor="quiz-duration" className="text-base">
+      <Label htmlFor="quiz-duration" className="text-sm">
         Duration (seconds)
       </Label>
       <Input
@@ -52,10 +52,10 @@ const QuizInfoSection: React.FC<Props> = ({
         min="30"
         aria-describedby={durationError ? 'quiz-duration-error' : undefined}
         aria-invalid={!!durationError}
-        className="h-12"
+        className="h-9 text-sm"
       />
       {durationError && (
-        <p id="quiz-duration-error" className="text-red-500 text-sm" role="alert">
+        <p id="quiz-duration-error" className="text-destructive text-xs" role="alert">
           {durationError}
         </p>
       )}

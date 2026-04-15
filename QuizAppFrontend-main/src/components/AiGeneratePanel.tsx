@@ -158,7 +158,7 @@ If the topic is too narrow or obscure to generate a full quiz, return: { "error"
   };
 
   return (
-    <div className="space-y-6 border rounded-lg p-6">
+    <div className="space-y-5 border border-border rounded-lg p-5 bg-card">
       <div aria-live="polite" className="sr-only">
         {status === 'loading' && 'Generating quiz questions...'}
         {status === 'success' && 'Questions generated successfully.'}
@@ -166,7 +166,7 @@ If the topic is too narrow or obscure to generate a full quiz, return: { "error"
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="ai-topic" className="text-base">
+        <Label htmlFor="ai-topic" className="text-sm">
           Topic
         </Label>
         <Input
@@ -178,22 +178,26 @@ If the topic is too narrow or obscure to generate a full quiz, return: { "error"
           maxLength={TOPIC_MAX}
           aria-describedby={topicError ? 'ai-topic-error' : undefined}
           aria-invalid={!!topicError}
-          className="h-12"
+          className="h-9 text-sm"
         />
         {topicError && (
-          <p id="ai-topic-error" className="text-red-500 text-sm" role="alert">
+          <p id="ai-topic-error" className="text-destructive text-xs" role="alert">
             {topicError}
           </p>
         )}
       </div>
 
       <fieldset className="space-y-2">
-        <legend className="text-base font-medium">Number of questions</legend>
-        <div className="flex gap-3">
+        <legend className="text-sm font-medium text-foreground">Number of questions</legend>
+        <div className="flex gap-1">
           {QUESTION_COUNTS.map((count) => (
             <label
               key={count}
-              className="flex items-center gap-1.5 cursor-pointer"
+              className={`flex items-center justify-center px-3 py-1.5 rounded-md text-sm cursor-pointer border transition-colors ${
+                questionCount === count
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted'
+              }`}
             >
               <input
                 type="radio"
@@ -201,7 +205,7 @@ If the topic is too narrow or obscure to generate a full quiz, return: { "error"
                 value={count}
                 checked={questionCount === count}
                 onChange={() => handleCountChange(count)}
-                className="accent-sky-600"
+                className="sr-only"
               />
               <span>{count}</span>
             </label>
@@ -210,7 +214,7 @@ If the topic is too narrow or obscure to generate a full quiz, return: { "error"
       </fieldset>
 
       {errorMessage && (
-        <p className="text-red-500 text-sm" role="alert">
+        <p className="text-destructive text-xs" role="alert">
           {errorMessage}
         </p>
       )}
@@ -219,6 +223,7 @@ If the topic is too narrow or obscure to generate a full quiz, return: { "error"
         type="button"
         onClick={handleGenerate}
         disabled={status === 'loading' || isDebouncing.current}
+        className="w-full"
       >
         {status === 'loading' ? 'Generating...' : 'Generate Questions'}
       </Button>

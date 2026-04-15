@@ -15,15 +15,15 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
   onToggle,
 }) => {
   return (
-    <div className="border-b border-gray-200 last:border-0">
+    <div className="border-b border-border last:border-0">
       <button
-        className="w-full py-4 px-6 text-left flex justify-between items-center hover:bg-gray-50"
+        className="w-full py-3 px-4 text-left flex justify-between items-center hover:bg-muted/50 transition-colors"
         onClick={onToggle}
       >
-        <span className="text-lg font-medium text-gray-900">{title}</span>
+        <span className="text-sm font-medium text-foreground">{title}</span>
         <svg
           className={cn(
-            "w-6 h-6 transform transition-transform duration-200",
+            "w-4 h-4 text-muted-foreground transform transition-transform duration-200",
             isOpen ? "rotate-180" : ""
           )}
           fill="none"
@@ -41,7 +41,7 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
       <div
         className={cn(
           "overflow-hidden transition-all duration-200 ease-in-out",
-          isOpen ? "max-h-[1000px] py-4 px-6" : "max-h-0"
+          isOpen ? "max-h-[1000px] py-3 px-4" : "max-h-0"
         )}
       >
         {children}
@@ -65,7 +65,7 @@ export const Accordion: React.FC<AccordionProps> = ({ items }) => {
   };
 
   return (
-    <div className="divide-y divide-gray-200 rounded-lg border border-gray-200">
+    <div className="divide-y divide-border rounded-lg border border-border">
       {items.map((item, index) => (
         <AccordionItem
           key={index}

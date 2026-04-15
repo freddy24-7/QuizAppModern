@@ -13,22 +13,10 @@ const QuizResults = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [totalQuestions, setTotalQuestions] = useState(0);
 
-  const generateBlueShades = (score: number) => {
-    const baseColors = [
-      { hue: 200, saturation: 90, lightness: 50 },
-      { hue: 210, saturation: 90, lightness: 50 },
-      { hue: 220, saturation: 90, lightness: 50 },
-    ];
-
+  const generateBarShades = (score: number) => {
     return Array.from({ length: score }).map((_, index) => {
-      const baseColor = baseColors[Math.floor(index / 4)];
-      const variation = index % 4;
-
-      const hue = baseColor.hue;
-      const saturation = baseColor.saturation - variation * 5;
-      const lightness = baseColor.lightness - variation * 3;
-
-      return `hsla(${hue}, ${saturation}%, ${lightness}%, 1)`;
+      const lightness = 48 - (index % 4) * 3;
+      return `hsla(239, 84%, ${lightness}%, 1)`;
     });
   };
 
@@ -83,17 +71,17 @@ const QuizResults = () => {
 
   const renderScoreBar = (result: QuizResult) => {
     const segmentHeight = totalQuestions > 0 ? (1 / totalQuestions) * 100 : 0;
-    const blueShades = generateBlueShades(result.score);
+    const blueShades = generateBarShades(result.score);
 
     return (
       <div
-        className="relative w-20 bg-gray-100 rounded-lg overflow-hidden"
-        style={{ height: '200px' }}
+        className="relative w-16 bg-muted rounded-lg overflow-hidden"
+        style={{ height: '180px' }}
       >
         {Array.from({ length: totalQuestions }).map((_, index) => (
           <div
             key={`empty-${index}`}
-            className="absolute w-full border-t border-gray-200"
+            className="absolute w-full border-t border-border"
             style={{
               bottom: `${(index / totalQuestions) * 100}%`,
               height: `${segmentHeight}%`,
@@ -114,7 +102,7 @@ const QuizResults = () => {
           />
         ))}
 
-        <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs font-medium text-sky-700 whitespace-nowrap">
+        <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 text-[10px] font-medium text-foreground whitespace-nowrap tabular-nums">
           {result.score}/{totalQuestions}
         </div>
       </div>
@@ -124,15 +112,15 @@ const QuizResults = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-sky-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="max-w-md mx-auto mt-8 p-6 bg-red-50 rounded-lg">
-        <p className="text-red-600">{error}</p>
+      <div className="max-w-md mx-auto mt-12 p-6 border border-destructive/20 bg-destructive/5 rounded-xl">
+        <p className="text-destructive text-sm">{error}</p>
         <Button
           onClick={() => navigate('/')}
           className="mt-4 w-full"
@@ -145,81 +133,81 @@ const QuizResults = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-8">
+    <div className="max-w-4xl mx-auto px-6 py-10">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-sky-900">Quiz Results</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Quiz Results</h1>
         <Button
           onClick={() => navigate('/')}
           variant="outline"
-          className="px-6"
+          size="sm"
         >
-          Create New Quiz
+          New Quiz
         </Button>
       </div>
 
-      <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-        <h2 className="text-xl font-semibold text-sky-900 mb-4">
+      <div className="bg-card border border-border rounded-xl p-6 mb-6">
+        <h2 className="text-sm font-semibold text-foreground mb-4">
           Score Distribution
         </h2>
-        <div className="flex items-end justify-around h-64 gap-4">
+        <div className="flex items-end justify-around h-56 gap-4">
           {results.map((result) => (
             <div
               key={`${result.participantId}-${result.quizId}`}
               className="flex flex-col items-center gap-2"
             >
               {renderScoreBar(result)}
-              <div className="text-sm font-medium text-gray-700 mt-2">
+              <div className="text-xs font-medium text-foreground mt-2">
                 {result.username}
               </div>
-              <div className="text-xs text-gray-500">
-                Questions answered: {result.questionIds.length}
+              <div className="text-[10px] text-muted-foreground">
+                {result.questionIds.length} answered
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-sky-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-sky-900">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Rank
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-sky-900">
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Username
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-sky-900">
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Questions
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-sky-900">
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Score
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-sky-900">
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Last Submission
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-border">
               {results.map((result, index) => (
                 <tr
                   key={`${result.participantId}-${result.quizId}`}
-                  className="hover:bg-sky-50"
+                  className="hover:bg-muted/50 transition-colors"
                 >
-                  <td className="px-6 py-4 text-sm text-gray-900">
+                  <td className="px-4 py-3 text-sm text-foreground tabular-nums">
                     {currentPage * 10 + index + 1}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
+                  <td className="px-4 py-3 text-sm font-medium text-foreground">
                     {result.username}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
+                  <td className="px-4 py-3 text-sm text-muted-foreground tabular-nums">
                     {result.questionIds.length} / {totalQuestions}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
+                  <td className="px-4 py-3 text-sm text-foreground font-medium tabular-nums">
                     {result.score} / {totalQuestions}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
+                  <td className="px-4 py-3 text-sm text-muted-foreground">
                     {result.lastSubmittedAt}
                   </td>
                 </tr>
@@ -229,11 +217,12 @@ const QuizResults = () => {
         </div>
 
         {totalPages > 1 && (
-          <div className="flex justify-center gap-2 p-4 bg-gray-50">
+          <div className="flex justify-center gap-2 p-3 border-t border-border">
             <Button
               onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
               disabled={currentPage === 0}
               variant="outline"
+              size="sm"
             >
               Previous
             </Button>
@@ -243,6 +232,7 @@ const QuizResults = () => {
               }
               disabled={currentPage === totalPages - 1}
               variant="outline"
+              size="sm"
             >
               Next
             </Button>
@@ -250,9 +240,9 @@ const QuizResults = () => {
         )}
       </div>
 
-      <div className="mt-4 text-sm text-gray-500 text-center">
+      <p className="mt-3 text-xs text-muted-foreground text-center">
         Results update automatically every 5 seconds
-      </div>
+      </p>
     </div>
   );
 };

@@ -36,8 +36,8 @@ const OptionInput: React.FC<Props> = ({
 
   return (
     <div className="space-y-1">
-      <div className="flex items-center space-x-4">
-        <div className="flex items-center space-x-2">
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 shrink-0">
           <Checkbox
             id={checkboxId}
             checked={option.correct}
@@ -45,7 +45,7 @@ const OptionInput: React.FC<Props> = ({
           />
           <Label
             htmlFor={checkboxId}
-            className="text-sm text-gray-600 dark:text-gray-400"
+            className="text-xs text-muted-foreground select-none"
           >
             Correct
           </Label>
@@ -62,7 +62,7 @@ const OptionInput: React.FC<Props> = ({
             placeholder={`Option ${index + 1}`}
             aria-describedby={error ? errorId : undefined}
             aria-invalid={!!error}
-            className="h-12"
+            className="h-9 text-sm"
           />
         </div>
 
@@ -70,16 +70,17 @@ const OptionInput: React.FC<Props> = ({
           <Button
             type="button"
             onClick={() => onRemove(index)}
-            variant="destructive"
+            variant="ghost"
             size="sm"
             aria-label={`Remove option ${index + 1}`}
+            className="text-xs text-muted-foreground hover:text-destructive shrink-0"
           >
             Remove
           </Button>
         )}
       </div>
       {error && (
-        <p id={errorId} className="text-red-500 text-sm" role="alert">
+        <p id={errorId} className="text-destructive text-xs pl-[4.5rem]" role="alert">
           {error}
         </p>
       )}

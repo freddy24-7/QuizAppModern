@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import QuizForm from './QuizForm';
 
 vi.mock('axios');
@@ -135,7 +135,7 @@ describe('QuizForm', () => {
       isAxiosError: true,
       response: { status: 429, data: {} },
     });
-    vi.mocked(mockedAxios).isAxiosError = vi.fn().mockReturnValue(true);
+    (mockedAxios.isAxiosError as unknown) = (_payload: unknown): _payload is AxiosError => true;
 
     await user.click(screen.getByRole('button', { name: /Send Quiz/i }));
 

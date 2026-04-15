@@ -5,7 +5,7 @@ import { AxiosError } from 'axios';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import api, { Question, QuizAnswerResponse, QuizDTO } from '../services/api';
+import api, { LobbyStatus, Question, QuizAnswerResponse, QuizDTO } from '../services/api';
 
 const QuizResponse = () => {
   const [searchParams] = useSearchParams();
@@ -14,7 +14,8 @@ const QuizResponse = () => {
   const quizId = quizIdParam ? parseInt(quizIdParam, 10) : null;
 
   const [username, setUsername] = useState('');
-  const [currentStep, setCurrentStep] = useState<'username' | 'questions'>('username');
+  const [currentStep, setCurrentStep] = useState<'username' | 'lobby' | 'questions'>('username');
+  const [lobbyStatus, setLobbyStatus] = useState<LobbyStatus | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [quizData, setQuizData] = useState<QuizDTO | null>(null);
@@ -94,6 +95,37 @@ const QuizResponse = () => {
     fetchQuizDetails();
   }, [quizId, phoneNumber]);
 
+  useEffect(() => {
+    if (currentStep !== 'lobby' || !quizId) return;
+
+    let cancelled = false;
+
+    const pollLobby = async () => {
+      try {
+        const status = await api.getLobbyStatus(quizId);
+        if (cancelled) return;
+        setLobbyStatus(status);
+
+        if (status.allReady) {
+          setCurrentStep('questions');
+          toast.success('All players are ready — quiz starting!');
+        }
+      } catch {
+        if (!cancelled) {
+          console.error('Failed to poll lobby status');
+        }
+      }
+    };
+
+    void pollLobby();
+    const interval = setInterval(pollLobby, 3000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [currentStep, quizId]);
+
   // Timer effect
   useEffect(() => {
     if (currentStep === 'questions' && timeLeft > 0 && !isTimeUp) {
@@ -117,28 +149,29 @@ const QuizResponse = () => {
     }
   }, [currentStep, timeLeft, isTimeUp]);
 
-  const handleUsernameSubmit = (e: React.FormEvent) => {
+  const handleUsernameSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username.trim()) {
-      toast.error('Please enter a your name');
+      toast.error('Please enter your name');
       return;
     }
 
-    // Check if quiz is closed
     if (quizData?.closed) {
       toast.error('This quiz is no longer accepting responses');
       return;
     }
 
-    // Check if quiz hasn't started yet
-    const startTime = quizData?.startTime ? new Date(quizData.startTime) : null;
-    if (startTime && startTime > new Date()) {
-      toast.error('This quiz has not started yet');
+    if (!quizId || !phoneNumber) {
+      toast.error('Invalid quiz link.');
       return;
     }
 
-    setCurrentStep('questions');
-    toast.success('Welcome to the quiz!');
+    try {
+      await api.markReady(quizId, phoneNumber, username.trim());
+      setCurrentStep('lobby');
+    } catch {
+      toast.error('Failed to join the lobby. Please try again.');
+    }
   };
 
   const handleAnswerSubmit = async (selectedAnswer: string) => {
@@ -241,6 +274,68 @@ const QuizResponse = () => {
         <p className="text-muted-foreground text-sm">
           You&apos;ve run out of time to complete the quiz.
         </p>
+      </div>
+    );
+  }
+
+  if (currentStep === 'lobby') {
+    const waitingFor = lobbyStatus
+      ? lobbyStatus.totalParticipants - lobbyStatus.readyCount
+      : 0;
+
+    return (
+      <div className="max-w-md mx-auto mt-12 p-6 bg-card border border-border rounded-xl text-center">
+        <div className="mb-4">
+          <div className="inline-flex items-center justify-center size-12 rounded-full bg-primary/10 mb-3">
+            <div className="animate-spin rounded-full h-5 w-5 border-2 border-primary border-t-transparent" />
+          </div>
+          <h2 className="text-lg font-semibold text-foreground">Waiting for players</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            The quiz will start when everyone is ready.
+          </p>
+        </div>
+
+        {lobbyStatus && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-center gap-2">
+              <span className="text-2xl font-bold text-primary tabular-nums">
+                {lobbyStatus.readyCount}
+              </span>
+              <span className="text-sm text-muted-foreground">
+                / {lobbyStatus.totalParticipants} ready
+              </span>
+            </div>
+
+            <div className="w-full bg-muted rounded-full h-2">
+              <div
+                className="bg-primary h-2 rounded-full transition-all duration-500"
+                style={{ width: `${(lobbyStatus.readyCount / lobbyStatus.totalParticipants) * 100}%` }}
+              />
+            </div>
+
+            {lobbyStatus.readyUsernames.length > 0 && (
+              <div className="pt-2 border-t border-border">
+                <p className="text-xs text-muted-foreground mb-2">Players ready:</p>
+                <div className="flex flex-wrap justify-center gap-1.5">
+                  {lobbyStatus.readyUsernames.map((name) => (
+                    <span
+                      key={name}
+                      className="inline-flex items-center px-2 py-0.5 rounded-md bg-primary/10 text-xs font-medium text-primary"
+                    >
+                      {name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {waitingFor > 0 && (
+              <p className="text-xs text-muted-foreground">
+                Waiting for {waitingFor} more player{waitingFor !== 1 ? 's' : ''}...
+              </p>
+            )}
+          </div>
+        )}
       </div>
     );
   }

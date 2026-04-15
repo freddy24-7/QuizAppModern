@@ -18,6 +18,10 @@ public class Participant {
     @Pattern(regexp = "\\+?[0-9]{10,15}")
     private String phoneNumber;
 
+    private String username;
+
+    private boolean ready = false;
+
     @ManyToOne
     private Quiz quiz;
 }

@@ -2,6 +2,7 @@ package com.quiz.QuizApp.service;
 
 import com.quiz.QuizApp.domain.Participant;
 import com.quiz.QuizApp.domain.Quiz;
+import com.quiz.QuizApp.dto.LobbyStatusDTO;
 import com.quiz.QuizApp.dto.QuizDTO;
 import com.quiz.QuizApp.mapper.QuizMapper;
 import com.quiz.QuizApp.repository.ParticipantRepository;
@@ -9,6 +10,7 @@ import com.quiz.QuizApp.repository.QuizRepository;
 import com.quiz.QuizApp.repository.ResponseRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -80,5 +82,49 @@ public class QuizService {
     @Transactional(readOnly = true)
     public Page<Quiz> getQuizPage(Pageable pageable) {
         return quizRepo.findAll(pageable);
+    }
+
+    @Transactional
+    public ResponseEntity<?> markParticipantReady(Long quizId, String phoneNumber, String username) {
+        Quiz quiz = quizRepo.findByIdWithParticipants(quizId).orElse(null);
+        if (quiz == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Participant participant = quiz.getParticipants().stream()
+                .filter(p -> p.getPhoneNumber().equals(phoneNumber))
+                .findFirst()
+                .orElse(null);
+
+        if (participant == null) {
+            return ResponseEntity.badRequest().body("Participant not found for this quiz.");
+        }
+
+        participant.setReady(true);
+        participant.setUsername(username);
+        participantRepo.save(participant);
+
+        return ResponseEntity.ok("Participant marked as ready.");
+    }
+
+    @Transactional(readOnly = true)
+    public LobbyStatusDTO getLobbyStatus(Long quizId) {
+        Quiz quiz = quizRepo.findByIdWithParticipants(quizId).orElse(null);
+        if (quiz == null) {
+            return null;
+        }
+
+        List<Participant> participants = quiz.getParticipants();
+        int total = participants.size();
+        List<Participant> readyParticipants = participants.stream()
+                .filter(Participant::isReady)
+                .toList();
+        int readyCount = readyParticipants.size();
+
+        List<String> readyUsernames = readyParticipants.stream()
+                .map(p -> p.getUsername() != null ? p.getUsername() : "Anonymous")
+                .toList();
+
+        return new LobbyStatusDTO(total, readyCount, readyCount == total, readyUsernames);
     }
 }

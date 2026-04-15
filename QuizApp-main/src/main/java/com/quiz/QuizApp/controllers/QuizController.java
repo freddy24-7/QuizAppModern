@@ -1,7 +1,9 @@
 package com.quiz.QuizApp.controllers;
 
+import com.quiz.QuizApp.dto.LobbyStatusDTO;
 import com.quiz.QuizApp.dto.QuizDTO;
 import com.quiz.QuizApp.dto.QuizSummaryDTO;
+import com.quiz.QuizApp.dto.ReadyRequestDTO;
 import com.quiz.QuizApp.domain.Quiz;
 import com.quiz.QuizApp.exception.RateLimitExceededException;
 import com.quiz.QuizApp.mapper.QuizMapper;
@@ -111,6 +113,22 @@ public class QuizController {
         logger.info("Deleting all quizzes");
         quizService.deleteAllQuizzes();
         return ResponseEntity.ok("All quizzes have been deleted.");
+    }
+
+    @PostMapping("/{id}/ready")
+    public ResponseEntity<?> markReady(@PathVariable Long id,
+                                       @RequestBody ReadyRequestDTO dto) {
+        logger.info("Participant {} marking ready for quiz {}", dto.getPhoneNumber(), id);
+        return quizService.markParticipantReady(id, dto.getPhoneNumber(), dto.getUsername());
+    }
+
+    @GetMapping("/{id}/lobby")
+    public ResponseEntity<LobbyStatusDTO> getLobbyStatus(@PathVariable Long id) {
+        LobbyStatusDTO status = quizService.getLobbyStatus(id);
+        if (status == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(status);
     }
 
     private String resolveClientIp(HttpServletRequest request) {

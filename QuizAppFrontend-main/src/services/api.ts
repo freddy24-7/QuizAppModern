@@ -61,6 +61,13 @@ export interface ResultsResponse {
   results: QuizResult[];
 }
 
+export interface LobbyStatus {
+  totalParticipants: number;
+  readyCount: number;
+  allReady: boolean;
+  readyUsernames: string[];
+}
+
 const api = {
   getQuestions: async (quizId: string | number): Promise<QuizDTO> => {
     const numericQuizId =
@@ -124,6 +131,17 @@ const api = {
       }
       throw error;
     }
+  },
+
+  markReady: async (quizId: number, phoneNumber: string, username: string): Promise<void> => {
+    const url = `${BASE_URL}/api/quizzes/${quizId}/ready`.replace(/([^:]\/)\/+/g, '$1');
+    await axios.post(url, { phoneNumber, username });
+  },
+
+  getLobbyStatus: async (quizId: number): Promise<LobbyStatus> => {
+    const url = `${BASE_URL}/api/quizzes/${quizId}/lobby`.replace(/([^:]\/)\/+/g, '$1');
+    const response = await axios.get<LobbyStatus>(url);
+    return response.data;
   },
 
   getResults: async (

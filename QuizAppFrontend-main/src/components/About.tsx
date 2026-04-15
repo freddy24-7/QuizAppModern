@@ -32,14 +32,24 @@ const About: React.FC<AboutProps> = ({ isOpen, onClose }) => {
       title: 'How to Use',
       content: (
         <div className="space-y-4 text-muted-foreground text-sm">
-          <p>QuizApp allows you to create and participate in interactive quizzes with the following steps:</p>
-          <ol className="list-decimal list-inside space-y-2">
-            <li>Create a quiz by setting title and duration</li>
-            <li>Add multiple-choice questions with correct answers</li>
-            <li>Add participants using their phone numbers</li>
-            <li>Participants receive SMS with quiz links</li>
-            <li>Track results in real-time as participants complete the quiz</li>
+          <p>QuizApp allows you to create and participate in interactive quizzes:</p>
+          <p className="font-medium text-foreground">Option A: Create manually</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Choose &quot;Create Manually&quot; from the home page</li>
+            <li>Set a quiz title and duration</li>
+            <li>Write your own questions with multiple-choice answers</li>
+            <li>Add recipients by phone number and send</li>
           </ol>
+          <p className="font-medium text-foreground mt-3">Option B: Generate with AI</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Choose &quot;Generate with AI&quot; from the home page</li>
+            <li>Enter a topic (e.g. &quot;The Solar System&quot;) and pick how many questions</li>
+            <li>AI generates the quiz using Google Gemini — review and edit as needed</li>
+            <li>Add recipients and send</li>
+          </ol>
+          <p className="mt-3">
+            Participants receive an SMS link. Everyone joins a lobby and the quiz starts when all players are ready.
+          </p>
         </div>
       ),
     },
@@ -75,51 +85,37 @@ const About: React.FC<AboutProps> = ({ isOpen, onClose }) => {
         <div className="space-y-4 text-muted-foreground text-sm">
           <p>The frontend is built with:</p>
           <ul className="list-disc list-inside space-y-2">
-            <li>React 18</li>
-            <li>TypeScript</li>
-            <li>Vite</li>
-            <li>TailwindCSS</li>
+            <li>React 19 + TypeScript</li>
+            <li>Vite 6</li>
+            <li>Tailwind CSS v4</li>
             <li>React Router</li>
-            <li>Axios for API calls</li>
+            <li>Google Gemini API (AI quiz generation)</li>
+            <li>Vitest + React Testing Library</li>
           </ul>
           <p className="mt-4 font-medium">Key Features:</p>
           <ul className="list-disc list-inside space-y-2">
-            <li>Modern, responsive design</li>
-            <li>Real-time quiz participation</li>
-            <li>Interactive quiz creation wizard</li>
-            <li>Live result tracking</li>
-            <li>Error handling and validation</li>
+            <li>AI-powered quiz generation from any topic</li>
+            <li>Manual quiz creation with inline validation</li>
+            <li>Player lobby — quiz starts when everyone is ready</li>
+            <li>Real-time quiz participation with countdown timer</li>
+            <li>Live result tracking with score distribution</li>
           </ul>
         </div>
       ),
     },
     {
-      title: 'GitHub Repos',
+      title: 'GitHub',
       content: (
         <div className="space-y-4 text-muted-foreground text-sm">
-          <p>The project is split into two repositories:</p>
-          <div className="space-y-2">
-            <p>Frontend Repository:</p>
-            <a
-              href="https://github.com/freddy24-7/QuizAppFrontend"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline break-all"
-            >
-              https://github.com/freddy24-7/QuizAppFrontend
-            </a>
-          </div>
-          <div className="space-y-2">
-            <p>Backend Repository:</p>
-            <a
-              href="https://github.com/freddy24-7/QuizApp"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline break-all"
-            >
-              https://github.com/freddy24-7/QuizApp
-            </a>
-          </div>
+          <p>The full project (frontend + backend) lives in a single repository:</p>
+          <a
+            href="https://github.com/freddy24-7/QuizAppModern"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline break-all"
+          >
+            github.com/freddy24-7/QuizAppModern
+          </a>
         </div>
       ),
     },
@@ -129,7 +125,7 @@ const About: React.FC<AboutProps> = ({ isOpen, onClose }) => {
         <div className="space-y-4 text-muted-foreground text-sm">
           <div className="space-y-2">
             <p className="font-medium">Phone Number Format:</p>
-            <p>The application is configured for Dutch phone numbers (starting with 06). This can be adjusted in the validation logic if needed for other regions.</p>
+            <p>Phone numbers must be in E.164 international format (e.g. +31612345678). This supports any country.</p>
           </div>
           <div className="space-y-2">
             <p className="font-medium">Twilio Integration:</p>

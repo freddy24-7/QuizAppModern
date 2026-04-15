@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 import { Button } from './ui/button';
@@ -141,6 +141,8 @@ function hasErrors(errors: FormErrors): boolean {
 
 const QuizForm = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialMode = searchParams.get('mode') === 'ai' ? 'ai' : 'manual';
 
   const [quizData, setQuizData] = useState<QuizData>({
     title: '',
@@ -159,7 +161,7 @@ const QuizForm = () => {
   const [submitStatus, setSubmitStatus] = useState<
     'idle' | 'sending' | 'success' | 'error'
   >('idle');
-  const [questionMode, setQuestionMode] = useState<'manual' | 'ai'>('manual');
+  const [questionMode, setQuestionMode] = useState<'manual' | 'ai'>(initialMode);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const title = e.target.value;
@@ -537,6 +539,15 @@ const QuizForm = () => {
         onConfirm={handleConfirmSend}
         onCancel={handleCancelConfirm}
       />
+
+      {isSubmitting && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-3">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent" />
+            <p className="text-sm font-medium text-foreground">Creating quiz &amp; sending invites...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

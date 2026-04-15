@@ -25,7 +25,7 @@ const DEBOUNCE_MS = 3000;
 const QUESTION_COUNTS = [5, 10, 15, 20] as const;
 type QuestionCount = (typeof QUESTION_COUNTS)[number];
 
-const GEMINI_MODEL = 'gemini-2.0-flash';
+const GEMINI_MODEL = 'gemini-2.5-flash';
 
 function validateTopic(topic: string): string | undefined {
   const trimmed = topic.trim();

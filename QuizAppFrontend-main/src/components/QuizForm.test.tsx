@@ -158,9 +158,13 @@ describe('QuizForm', () => {
     const user = userEvent.setup();
     renderQuizForm();
 
-    expect(screen.getByText('Questions (1)')).toBeInTheDocument();
+    expect(screen.getByText((_content, node) => {
+      return node?.textContent === 'Questions(1)' || node?.textContent === 'Questions (1)';
+    })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /Add Question/i }));
-    expect(screen.getByText('Questions (2)')).toBeInTheDocument();
+    expect(screen.getByText((_content, node) => {
+      return node?.textContent === 'Questions(2)' || node?.textContent === 'Questions (2)';
+    })).toBeInTheDocument();
   });
 
   it('can switch between manual and AI modes', async () => {

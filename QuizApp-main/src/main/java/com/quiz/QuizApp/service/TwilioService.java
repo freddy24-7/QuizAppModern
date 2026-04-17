@@ -3,12 +3,16 @@ package com.quiz.QuizApp.service;
 import com.twilio.Twilio;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
 public class TwilioService {
+
+    private static final Logger logger = LoggerFactory.getLogger(TwilioService.class);
 
     @Value("${twilio.account.sid}")
     private String ACCOUNT_SID;
@@ -22,36 +26,39 @@ public class TwilioService {
     @Value("${app.frontend.url}")
     private String FRONTEND_URL;
 
-    public void sendQuizInvites(List<String> phoneNumbers, Long quizId) {
-        Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
-
-        // Remove trailing slash from FRONTEND_URL if present
-        String baseUrl = FRONTEND_URL.endsWith("/") ? FRONTEND_URL.substring(0, FRONTEND_URL.length() - 1) : FRONTEND_URL;
-
-        // Loop through the list of phone numbers and send the SMS invite to each
-        for (String phoneNumber : phoneNumbers) {
-            // Prepare the message content with phone number included in the URL
-            String messageBody = String.format(
-                    "You've been invited to take a quiz! Click the link below to participate:\n\n%s/quiz/respond?quizId=%d&phoneNumber=%s",
-                    baseUrl,
-                    quizId,
-                    phoneNumber
-            );
-
-            PhoneNumber to = new PhoneNumber(formatPhoneNumber(phoneNumber));
-            PhoneNumber from = new PhoneNumber(TWILIO_PHONE_NUMBER);
-
-            // Send the SMS
-            Message.creator(
-                    to,
-                    from,
-                    messageBody
-            ).create();
-        }
+    public boolean isConfigured() {
+        return ACCOUNT_SID != null && !ACCOUNT_SID.isBlank()
+                && AUTH_TOKEN != null && !AUTH_TOKEN.isBlank()
+                && TWILIO_PHONE_NUMBER != null && !TWILIO_PHONE_NUMBER.isBlank();
     }
 
-    private String formatPhoneNumber(String phoneNumber) {
-        // Phone numbers are stored in E.164 format; pass through as-is.
-        return phoneNumber;
+    public void sendQuizInvites(List<String> phoneNumbers, Long quizId) {
+        if (!isConfigured()) {
+            logger.warn("Twilio credentials not configured — skipping SMS delivery for quiz {}", quizId);
+            return;
+        }
+
+        Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
+
+        String baseUrl = FRONTEND_URL.endsWith("/")
+                ? FRONTEND_URL.substring(0, FRONTEND_URL.length() - 1)
+                : FRONTEND_URL;
+
+        for (String phoneNumber : phoneNumbers) {
+            String messageBody = String.format(
+                    "You've been invited to take a quiz! Click the link below to participate:\n\n%s/quiz/respond?quizId=%d&phoneNumber=%s",
+                    baseUrl, quizId, phoneNumber
+            );
+            try {
+                Message.creator(
+                        new PhoneNumber(phoneNumber),
+                        new PhoneNumber(TWILIO_PHONE_NUMBER),
+                        messageBody
+                ).create();
+                logger.info("SMS invite sent to {}", phoneNumber);
+            } catch (Exception e) {
+                logger.error("Failed to send SMS to {}: {}", phoneNumber, e.getMessage());
+            }
+        }
     }
 }

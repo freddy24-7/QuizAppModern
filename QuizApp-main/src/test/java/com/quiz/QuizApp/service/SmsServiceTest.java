@@ -10,7 +10,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -46,10 +45,11 @@ class SmsServiceTest {
     }
 
     @Test
-    void shouldThrowWhenQuizNotFound() {
+    void shouldSkipSmsWhenQuizNotFound() {
         when(quizService.getQuizById(99L)).thenReturn(null);
 
-        assertThrows(RuntimeException.class, () -> quizInviteService.sendQuizInvites(99L));
+        quizInviteService.sendQuizInvites(99L);
+
         verify(twilioService, never()).sendQuizInvites(anyList(), eq(99L));
     }
 

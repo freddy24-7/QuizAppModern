@@ -24,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(QuizController.class)
 @Import(GlobalExceptionHandler.class)
+@SuppressWarnings("null")
 class QuizControllerTest {
 
     @Autowired

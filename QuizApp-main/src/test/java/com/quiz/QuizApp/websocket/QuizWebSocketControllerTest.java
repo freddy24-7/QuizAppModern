@@ -19,6 +19,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentCaptor.forClass;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("null")
 class QuizWebSocketControllerTest {
 
     @Mock

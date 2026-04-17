@@ -2,12 +2,16 @@ package com.quiz.QuizApp.service;
 
 import com.quiz.QuizApp.domain.Participant;
 import com.quiz.QuizApp.domain.Quiz;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class QuizInviteService {
+
+    private static final Logger logger = LoggerFactory.getLogger(QuizInviteService.class);
 
     private final TwilioService twilioService;
     private final QuizService quizService;
@@ -20,15 +24,14 @@ public class QuizInviteService {
     public void sendQuizInvites(Long quizId) {
         Quiz quiz = quizService.getQuizById(quizId);
         if (quiz == null) {
-            throw new RuntimeException("Quiz not found");
+            logger.warn("sendQuizInvites called for unknown quiz ID {}", quizId);
+            return;
         }
 
-        // Collect phone numbers of all participants
         List<String> phoneNumbers = quiz.getParticipants().stream()
                 .map(Participant::getPhoneNumber)
                 .collect(Collectors.toList());
 
-        // Send invites to all participants
         twilioService.sendQuizInvites(phoneNumbers, quizId);
     }
 }

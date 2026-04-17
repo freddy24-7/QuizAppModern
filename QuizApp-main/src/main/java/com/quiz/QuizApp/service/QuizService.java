@@ -11,6 +11,8 @@ import com.quiz.QuizApp.repository.ResponseRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,7 +35,7 @@ public class QuizService {
         this.responseRepo = responseRepo;
     }
 
-    public Quiz createQuiz(QuizDTO dto) {
+    public @NonNull Quiz createQuiz(QuizDTO dto) {
         return quizRepo.save(QuizMapper.fromDto(dto));
     }
 
@@ -45,11 +47,11 @@ public class QuizService {
     }
 
     @Transactional(readOnly = true)
-    public Quiz getQuizById(Long id) {
+    public @Nullable Quiz getQuizById(Long id) {
         return quizRepo.findByIdWithParticipants(id).orElse(null);
     }
 
-    public Quiz updateQuiz(Long id, QuizDTO dto) {
+    public @Nullable Quiz updateQuiz(@NonNull Long id, QuizDTO dto) {
         if (!quizRepo.existsById(id)) return null;
         Quiz quiz = QuizMapper.fromDto(dto);
         quiz.setId(id);
@@ -57,7 +59,7 @@ public class QuizService {
     }
 
     @Transactional
-    public boolean deleteQuiz(Long id) {
+    public boolean deleteQuiz(@NonNull Long id) {
         if (!quizRepo.existsById(id)) return false;
 
         var participantIds = participantRepo.findByQuiz_Id(id)
@@ -80,7 +82,7 @@ public class QuizService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Quiz> getQuizPage(Pageable pageable) {
+    public Page<Quiz> getQuizPage(@NonNull Pageable pageable) {
         return quizRepo.findAll(pageable);
     }
 
@@ -108,7 +110,7 @@ public class QuizService {
     }
 
     @Transactional(readOnly = true)
-    public LobbyStatusDTO getLobbyStatus(Long quizId) {
+    public @Nullable LobbyStatusDTO getLobbyStatus(Long quizId) {
         Quiz quiz = quizRepo.findByIdWithParticipants(quizId).orElse(null);
         if (quiz == null) {
             return null;

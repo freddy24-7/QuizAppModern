@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import jakarta.validation.Valid;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -86,7 +87,7 @@ public class QuizController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<QuizDTO> updateQuiz(@PathVariable Long id,
+    public ResponseEntity<QuizDTO> updateQuiz(@PathVariable @NonNull Long id,
                                                @Valid @RequestBody QuizDTO dto) {
         logger.info("Updating quiz ID: {}", id);
         var updated = quizService.updateQuiz(id, dto);
@@ -97,14 +98,14 @@ public class QuizController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteQuiz(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteQuiz(@PathVariable @NonNull Long id) {
         logger.info("Deleting quiz ID: {}", id);
         boolean deleted = quizService.deleteQuiz(id);
         return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 
     @GetMapping("/summaries")
-    public Page<QuizSummaryDTO> getSummaries(@PageableDefault(size = 5) Pageable pageable) {
+    public Page<QuizSummaryDTO> getSummaries(@PageableDefault(size = 5) @NonNull Pageable pageable) {
         return quizService.getQuizPage(pageable).map(QuizMapper::toSummaryDto);
     }
 

@@ -2,13 +2,14 @@ package com.quiz.QuizApp.mapper;
 
 import com.quiz.QuizApp.domain.*;
 import com.quiz.QuizApp.dto.*;
+import org.springframework.lang.NonNull;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class QuizMapper {
 
-    public static Quiz fromDto(QuizDTO dto) {
+    public static @NonNull Quiz fromDto(QuizDTO dto) {
         Quiz quiz = new Quiz();
         quiz.setTitle(dto.getTitle());
         quiz.setDurationInSeconds(dto.getDurationInSeconds());

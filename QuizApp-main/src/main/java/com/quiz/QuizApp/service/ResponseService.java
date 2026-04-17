@@ -14,6 +14,7 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class ResponseService {
 
     private final ResponseRepository responseRepo;

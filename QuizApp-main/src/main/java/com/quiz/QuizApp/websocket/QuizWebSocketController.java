@@ -72,7 +72,8 @@ public class QuizWebSocketController {
                     .findFirst()
                     .map(AnswerOption::isCorrect)
                     .orElse(false);
-            scores.merge(r.getUsername(), correct ? 1 : 0, Integer::sum);
+            String username = r.getUsername() != null ? r.getUsername() : "Unknown";
+            scores.merge(username, Integer.valueOf(correct ? 1 : 0), (a, b) -> Integer.valueOf(a + b));
         }
 
         // 5. Build scoreboard list

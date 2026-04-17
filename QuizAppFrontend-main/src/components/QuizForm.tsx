@@ -413,7 +413,14 @@ const QuizForm = () => {
       </div>
 
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Create a New Quiz</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          <span
+            className="bg-clip-text text-transparent"
+            style={{ backgroundImage: 'linear-gradient(90deg, #f97316, #ef4444)' }}
+          >
+            Create a New Quiz
+          </span>
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">Fill in the details below, add questions, and send to your recipients.</p>
       </div>
 
@@ -493,14 +500,14 @@ const QuizForm = () => {
       {/* Section 4: Send */}
       <section className="pt-4 border-t border-border">
         <h2 className="sr-only">Send Quiz</h2>
-        <Button
+        <button
           onClick={handleSendClick}
           disabled={isSubmitting}
-          size="lg"
-          className="w-full sm:w-auto text-base px-10 h-12 rounded-lg"
+          className="w-full sm:w-auto text-base px-10 h-12 rounded-xl font-semibold text-white shadow-md transition-all hover:opacity-90 hover:shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ backgroundImage: 'linear-gradient(135deg, #f97316 0%, #ef4444 100%)' }}
         >
           {isSubmitting ? 'Sending...' : 'Send Quiz'}
-        </Button>
+        </button>
       </section>
 
       <ConfirmSendDialog

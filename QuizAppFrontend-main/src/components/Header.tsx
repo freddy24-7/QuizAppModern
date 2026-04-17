@@ -8,13 +8,19 @@ const Header = () => {
   return (
     <>
       <header
-        className="fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-border z-50"
+        className="fixed top-0 w-full z-50 bg-white/85 backdrop-blur-md border-b border-orange-100/60 shadow-sm"
         role="banner"
       >
         <div className="max-w-6xl mx-auto px-6 h-14 flex justify-between items-center">
-          <h1 className="text-lg font-semibold tracking-tight text-foreground">
+          <h1 className="text-lg font-bold tracking-tight">
             <span className="sr-only">Quiz Generator</span>
-            <span className="text-primary">Quiz</span>Generator
+            <span
+              className="bg-clip-text text-transparent"
+              style={{ backgroundImage: 'linear-gradient(90deg, #f97316, #ef4444)' }}
+            >
+              Quiz
+            </span>
+            <span className="text-foreground">Generator</span>
           </h1>
           <nav aria-label="Main navigation">
             <Button

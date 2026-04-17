@@ -158,24 +158,27 @@ describe('QuizForm', () => {
     const user = userEvent.setup();
     renderQuizForm();
 
-    expect(screen.getByText((_content, node) => {
-      return node?.textContent === 'Questions(1)' || node?.textContent === 'Questions (1)';
-    })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Questions/ })).toHaveTextContent('(1)');
     await user.click(screen.getByRole('button', { name: /Add Question/i }));
-    expect(screen.getByText((_content, node) => {
-      return node?.textContent === 'Questions(2)' || node?.textContent === 'Questions (2)';
-    })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Questions/ })).toHaveTextContent('(2)');
   });
 
-  it('can switch between manual and AI modes', async () => {
-    const user = userEvent.setup();
-    renderQuizForm();
-
-    expect(screen.queryByPlaceholderText(/Roman Empire/i)).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: /Generate with AI/i }));
+  it('shows AI panel when navigated with ?mode=ai', () => {
+    render(
+      <MemoryRouter initialEntries={['/quiz?mode=ai']}>
+        <QuizForm />
+      </MemoryRouter>,
+    );
     expect(screen.getByPlaceholderText(/Roman Empire/i)).toBeInTheDocument();
+  });
 
-    await user.click(screen.getByRole('button', { name: /Create manually/i }));
+  it('shows manual form when navigated with ?mode=manual', () => {
+    render(
+      <MemoryRouter initialEntries={['/quiz?mode=manual']}>
+        <QuizForm />
+      </MemoryRouter>,
+    );
     expect(screen.queryByPlaceholderText(/Roman Empire/i)).not.toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Enter your question')).toBeInTheDocument();
   });
 });

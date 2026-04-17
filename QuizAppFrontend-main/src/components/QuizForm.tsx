@@ -392,9 +392,6 @@ const QuizForm = () => {
 
   const handleCancelConfirm = () => setShowConfirmDialog(false);
 
-  const handleSwitchToManual = () => setQuestionMode('manual');
-  const handleSwitchToAi = () => setQuestionMode('ai');
-
   const handleQuestionsGenerated = (
     generated: { text: string; options: { text: string; correct: boolean }[] }[],
   ) => {
@@ -442,32 +439,6 @@ const QuizForm = () => {
             Questions
             <span className="ml-1.5 text-xs font-normal text-muted-foreground">({quizData.questions.length})</span>
           </h2>
-          <div className="flex rounded-lg border border-border overflow-hidden" role="group" aria-label="Question creation mode">
-            <button
-              type="button"
-              onClick={handleSwitchToManual}
-              aria-pressed={questionMode === 'manual'}
-              className={`px-3 py-1.5 text-xs font-medium transition-colors ${
-                questionMode === 'manual'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-transparent text-muted-foreground hover:text-foreground hover:bg-muted'
-              }`}
-            >
-              Create manually
-            </button>
-            <button
-              type="button"
-              onClick={handleSwitchToAi}
-              aria-pressed={questionMode === 'ai'}
-              className={`px-3 py-1.5 text-xs font-medium transition-colors border-l border-border ${
-                questionMode === 'ai'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-transparent text-muted-foreground hover:text-foreground hover:bg-muted'
-              }`}
-            >
-              Generate with AI
-            </button>
-          </div>
         </div>
 
         {questionMode === 'ai' && (

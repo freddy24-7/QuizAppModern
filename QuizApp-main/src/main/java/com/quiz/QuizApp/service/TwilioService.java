@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Service
@@ -45,9 +47,10 @@ public class TwilioService {
                 : FRONTEND_URL;
 
         for (String phoneNumber : phoneNumbers) {
+            String encodedPhone = URLEncoder.encode(phoneNumber, StandardCharsets.UTF_8);
             String messageBody = String.format(
                     "You've been invited to take a quiz! Click the link below to participate:\n\n%s/quiz/respond?quizId=%d&phoneNumber=%s",
-                    baseUrl, quizId, phoneNumber
+                    baseUrl, quizId, encodedPhone
             );
             try {
                 Message.creator(

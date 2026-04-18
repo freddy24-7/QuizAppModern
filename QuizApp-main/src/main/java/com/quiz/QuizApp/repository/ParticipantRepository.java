@@ -9,6 +9,8 @@ import java.util.Optional;
 public interface ParticipantRepository extends JpaRepository<Participant, Long> {
     Optional<Participant> findByPhoneNumber(String phoneNumber);
 
+    Optional<Participant> findByPhoneNumberAndQuiz_Id(String phoneNumber, Long quizId);
+
     void deleteAllByQuiz_Id(Long quizId);
 
     List<Participant> findByQuiz_Id(Long quizId);

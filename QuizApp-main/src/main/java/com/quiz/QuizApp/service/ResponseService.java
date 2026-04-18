@@ -24,20 +24,15 @@ public class ResponseService {
 
     @Transactional
     public ResponseEntity<String> submitResponse(ResponseDTO dto) {
-        Participant participant = participantRepo.findAll().stream()
-                .filter(p -> p.getPhoneNumber().equals(dto.getPhoneNumber()))
-                .findFirst()
+        Participant participant = participantRepo
+                .findByPhoneNumberAndQuiz_Id(dto.getPhoneNumber(), dto.getQuizId())
                 .orElse(null);
 
-        if (participant == null) return ResponseEntity.badRequest().body("Invalid participant phone number");
+        if (participant == null) return ResponseEntity.badRequest().body("Invalid participant for this quiz");
 
         Question question = questionRepo.findById(dto.getQuestionId()).orElse(null);
         if (question == null) {
             return ResponseEntity.badRequest().body("Invalid question ID");
-        }
-
-        if (!question.getQuiz().getId().equals(dto.getQuizId())) {
-            return ResponseEntity.badRequest().body("Mismatch: The question does not belong to the provided quiz.");
         }
 
         Quiz quiz = question.getQuiz();

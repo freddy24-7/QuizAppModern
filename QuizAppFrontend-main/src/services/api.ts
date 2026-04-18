@@ -144,6 +144,16 @@ const api = {
     return response.data;
   },
 
+  deleteQuiz: async (quizId: string | number): Promise<void> => {
+    const numericQuizId =
+      typeof quizId === 'string' ? parseInt(quizId, 10) : quizId;
+    const url = `${BASE_URL}/api/quizzes/${numericQuizId}`.replace(
+      /([^:]\/)\/+/g,
+      '$1',
+    );
+    await axios.delete(url);
+  },
+
   getResults: async (
     quizId: string | number,
     page: number = 0,

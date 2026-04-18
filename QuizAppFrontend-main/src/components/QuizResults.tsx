@@ -1,11 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api, { QuizResult } from '../services/api';
+import api, { BASE_URL, QuizResult } from '../services/api';
 import { Button } from './ui/button';
 
 const QuizResults = () => {
   const { quizId } = useParams<{ quizId: string }>();
   const navigate = useNavigate();
+  const hasDeletedRef = useRef(false);
   const [results, setResults] = useState<QuizResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,6 +69,28 @@ const QuizResults = () => {
 
     return () => clearInterval(interval);
   }, [fetchQuizDetails, fetchResults]);
+
+  // Wipe quiz data when user navigates away within the SPA (component unmount)
+  useEffect(() => {
+    return () => {
+      if (!quizId || hasDeletedRef.current) return;
+      hasDeletedRef.current = true;
+      void api.deleteQuiz(quizId);
+    };
+  }, [quizId]);
+
+  // Wipe quiz data on page close or refresh (beforeunload)
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (!quizId || hasDeletedRef.current) return;
+      hasDeletedRef.current = true;
+      const url = `${BASE_URL}/api/quizzes/${quizId}`.replace(/([^:]\/)\/+/g, '$1');
+      // keepalive ensures the request survives page teardown
+      void fetch(url, { method: 'DELETE', keepalive: true });
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [quizId]);
 
   const renderScoreBar = (result: QuizResult) => {
     const segmentHeight = totalQuestions > 0 ? (1 / totalQuestions) * 100 : 0;

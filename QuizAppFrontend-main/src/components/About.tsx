@@ -136,6 +136,15 @@ const About: React.FC<AboutProps> = ({ isOpen, onClose }) => {
               <li>SMS features will not work with localhost in development</li>
             </ul>
           </div>
+          <div className="space-y-2">
+            <p className="font-medium">Data Privacy & Automatic Cleanup:</p>
+            <p>
+              Quiz data is not stored permanently. Once results have been displayed, all quiz data — including questions, participant phone numbers, and responses — is automatically deleted from the backend when the quiz creator leaves the results page (by navigating away, closing the tab, or refreshing).
+            </p>
+            <p>
+              This means the app requires a live backend deployment to function correctly. Running the backend locally is insufficient for full use, as the SMS delivery and data lifecycle both depend on a persistent server environment. The backend must be deployed to a service such as Railway.
+            </p>
+          </div>
         </div>
       ),
     },

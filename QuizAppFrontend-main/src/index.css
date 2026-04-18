@@ -110,6 +110,14 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+@keyframes wrong-answer-pulse {
+  0%   { opacity: 0; transform: scaleY(0); }
+  10%  { opacity: 1; transform: scaleY(1); }
+  50%  { opacity: 1; transform: scaleY(1); }
+  80%  { opacity: 0; transform: scaleY(0); }
+  100% { opacity: 0; transform: scaleY(0); }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

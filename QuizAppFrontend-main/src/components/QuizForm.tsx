@@ -394,10 +394,12 @@ const QuizForm = () => {
 
   const handleQuestionsGenerated = (
     generated: { text: string; options: { text: string; correct: boolean }[] }[],
+    topic: string,
   ) => {
-    setQuizData((prev) => ({ ...prev, questions: generated }));
+    setQuizData((prev) => ({ ...prev, questions: generated, title: topic }));
     setErrors((prev) => ({
       ...prev,
+      title: undefined,
       questions: generated.map(() => EMPTY_QUESTION_ERRORS()),
     }));
     setQuestionMode('manual');
@@ -434,6 +436,7 @@ const QuizForm = () => {
           duration={quizData.durationInSeconds}
           titleError={errors.title}
           durationError={errors.duration}
+          hideTitle={questionMode === 'ai'}
           onTitleChange={handleTitleChange}
           onDurationChange={handleDurationChange}
         />

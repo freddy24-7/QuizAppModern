@@ -14,7 +14,7 @@ interface GeneratedQuestion {
 }
 
 interface Props {
-  onQuestionsGenerated: (questions: GeneratedQuestion[]) => void;
+  onQuestionsGenerated: (questions: GeneratedQuestion[], topic: string) => void;
 }
 
 const TOPIC_MIN = 3;
@@ -148,7 +148,7 @@ If the topic is too narrow or obscure to generate a full quiz, return: { "error"
       );
 
       setStatus('success');
-      onQuestionsGenerated(questions);
+      onQuestionsGenerated(questions, topic.trim());
     } catch (err) {
       setStatus('error');
       setErrorMessage(

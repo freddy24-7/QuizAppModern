@@ -13,10 +13,10 @@ const QuizResults = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [totalQuestions, setTotalQuestions] = useState(0);
 
-  const generateBarShades = (score: number) => {
+  const generateGreenShades = (score: number) => {
     return Array.from({ length: score }).map((_, index) => {
-      const lightness = 48 - (index % 4) * 3;
-      return `hsla(239, 84%, ${lightness}%, 1)`;
+      const lightness = 40 - (index % 4) * 3;
+      return `hsla(142, 72%, ${lightness}%, 1)`;
     });
   };
 
@@ -71,7 +71,8 @@ const QuizResults = () => {
 
   const renderScoreBar = (result: QuizResult) => {
     const segmentHeight = totalQuestions > 0 ? (1 / totalQuestions) * 100 : 0;
-    const blueShades = generateBarShades(result.score);
+    const greenShades = generateGreenShades(result.score);
+    const wrongCount = result.questionIds.length - result.score;
 
     return (
       <div
@@ -96,8 +97,23 @@ const QuizResults = () => {
             style={{
               bottom: `${(index / totalQuestions) * 100}%`,
               height: `${segmentHeight}%`,
-              backgroundColor: blueShades[index],
+              backgroundColor: greenShades[index],
               borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+            }}
+          />
+        ))}
+
+        {Array.from({ length: wrongCount }).map((_, index) => (
+          <div
+            key={`wrong-${index}`}
+            className="absolute w-full"
+            style={{
+              bottom: `${((result.score + index) / totalQuestions) * 100}%`,
+              height: `${segmentHeight}%`,
+              backgroundColor: 'hsla(0, 85%, 55%, 0.85)',
+              borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+              transformOrigin: 'bottom',
+              animation: `wrong-answer-pulse 3.5s ease-in-out ${index * 0.7}s infinite`,
             }}
           />
         ))}

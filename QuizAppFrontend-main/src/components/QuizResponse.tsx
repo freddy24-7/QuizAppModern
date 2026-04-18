@@ -10,7 +10,9 @@ import api, { LobbyStatus, Question, QuizAnswerResponse, QuizDTO } from '../serv
 const QuizResponse = () => {
   const [searchParams] = useSearchParams();
   const quizIdParam = searchParams.get('quizId');
-  const phoneNumber = searchParams.get('phoneNumber');
+  const rawPhone = searchParams.get('phoneNumber') ?? '';
+  // URLSearchParams decodes '+' as a space; restore it to '+' for E.164 numbers
+  const phoneNumber = rawPhone.startsWith(' ') ? '+' + rawPhone.slice(1) : rawPhone;
   const quizId = quizIdParam ? parseInt(quizIdParam, 10) : null;
 
   const [username, setUsername] = useState('');

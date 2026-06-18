@@ -43,8 +43,6 @@ public class ResponseService {
         if (quiz.getStartTime() != null && quiz.getDurationInSeconds() != null) {
             LocalDateTime endTime = quiz.getStartTime().plusSeconds(quiz.getDurationInSeconds());
             if (LocalDateTime.now().isAfter(endTime)) {
-                quiz.setClosed(true);
-                quizRepo.save(quiz);
                 return ResponseEntity.badRequest().body("Time is up. The quiz has been closed.");
             }
         }

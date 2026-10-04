@@ -38,7 +38,7 @@ public class QuizWebSocketController {
     public void handleAnswer(AnswerSubmission submission) {
         // 1. Find participant
         Participant participant = participantRepo
-                .findByPhoneNumber(submission.getPlayerId())
+                .findByIdAndQuiz_Id(submission.getParticipantId(), submission.getQuizId())
                 .orElse(null);
         if (participant == null) {
             return;

@@ -11,7 +11,7 @@ public class AnswerSubmission {
     private Long quizId;
     private Long questionId;
     private String selectedAnswer;
-    private String playerId;
+    private Long participantId;
     private String username;
 
 }

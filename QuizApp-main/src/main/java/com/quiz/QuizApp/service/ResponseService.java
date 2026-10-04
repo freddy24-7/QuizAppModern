@@ -25,7 +25,7 @@ public class ResponseService {
     @Transactional
     public ResponseEntity<String> submitResponse(ResponseDTO dto) {
         Participant participant = participantRepo
-                .findByPhoneNumberAndQuiz_Id(dto.getPhoneNumber(), dto.getQuizId())
+                .findByIdAndQuiz_Id(dto.getParticipantId(), dto.getQuizId())
                 .orElse(null);
 
         if (participant == null) return ResponseEntity.badRequest().body("Invalid participant for this quiz");
@@ -39,6 +39,9 @@ public class ResponseService {
         if (quiz.isClosed()) {
             return ResponseEntity.badRequest().body("This quiz is closed.");
         }
+        if (!quiz.isStarted()) {
+            return ResponseEntity.badRequest().body("This quiz has not started yet.");
+        }
 
         if (quiz.getStartTime() != null && quiz.getDurationInSeconds() != null) {
             LocalDateTime endTime = quiz.getStartTime().plusSeconds(quiz.getDurationInSeconds());
@@ -47,7 +50,7 @@ public class ResponseService {
             }
         }
 
-        saveOrUpdateResponse(dto.getUsername(), participant, question, dto.getSelectedAnswer());
+        saveOrUpdateResponse(participant.getUsername(), participant, question, dto.getSelectedAnswer());
         return ResponseEntity.ok("Response submitted (or updated) successfully");
     }
 
@@ -164,7 +167,7 @@ public class ResponseService {
 
             Map<String, Object> progress = new HashMap<>();
             progress.put("username", username);
-            progress.put("phoneNumber", participant.getPhoneNumber());
+            progress.put("participantId", participant.getId());
             progress.put("answered", answeredCount);
             progress.put("total", totalQuestions);
             progress.put("completionPercentage", percentage);

@@ -1,12 +1,12 @@
-# Quiz App with WhatsApp Integration
+# Quiz App
 
-A modern quiz application built with React, TypeScript, and Vite that allows users to create and participate in quizzes through WhatsApp integration.
+A modern quiz application built with React, TypeScript, and Vite that allows users to create quizzes and let participants join by scanning a QR code.
 
 ## Features
 
 - Interactive quiz creation and management
 - Real-time quiz participation
-- WhatsApp integration for quiz delivery and responses
+- QR code joining: no phone numbers or accounts needed
 - Modern, responsive user interface
 - TypeScript for type safety and better development experience
 
@@ -15,19 +15,13 @@ A modern quiz application built with React, TypeScript, and Vite that allows use
 - React + TypeScript
 - Vite for fast development and building
 - Modern UI components and styling
-- WhatsApp API integration for messaging
+- `qrcode.react` for the join QR code
 
-## Important Note About WhatsApp Integration
+## How Joining Works
 
-This application currently uses WhatsApp integration as a test feature. For a production environment, it is recommended to use a professional messaging service provider such as Twilio or similar services that offer:
+After creating a quiz, the host sees a QR code. Participants scan it, enter a name, and wait in the lobby. The quiz begins when the host clicks Start; nobody can join after that.
 
-- Reliable message delivery
-- Better scalability
-- Professional support
-- Compliance with messaging regulations
-- Analytics and monitoring capabilities
-
-These services typically require a paid subscription but provide the necessary infrastructure for production-grade applications.
+The QR code points at the address the host's browser is using, so when developing locally open the app via your machine's LAN address (not `localhost`) if you want to scan it with a phone.
 
 ## Getting Started
 

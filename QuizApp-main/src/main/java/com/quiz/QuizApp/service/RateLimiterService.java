@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RateLimiterService {
 
     private final ConcurrentHashMap<String, Bucket> quizBuckets = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, Bucket> smsBuckets = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Bucket> joinBuckets = new ConcurrentHashMap<>();
 
     private static Bucket newQuizBucket() {
         Bandwidth limit = Bandwidth.builder()
@@ -21,10 +21,11 @@ public class RateLimiterService {
         return Bucket.builder().addLimit(limit).build();
     }
 
-    private static Bucket newSmsBucket() {
+    // Generous: a whole room of participants often shares one IP (same Wi-Fi)
+    private static Bucket newJoinBucket() {
         Bandwidth limit = Bandwidth.builder()
-                .capacity(20)
-                .refillIntervally(20, Duration.ofHours(1))
+                .capacity(100)
+                .refillIntervally(100, Duration.ofHours(1))
                 .build();
         return Bucket.builder().addLimit(limit).build();
     }
@@ -33,7 +34,7 @@ public class RateLimiterService {
         return quizBuckets.computeIfAbsent(ip, k -> newQuizBucket()).tryConsume(1);
     }
 
-    public boolean tryConsumeSmsSubmission(String ip) {
-        return smsBuckets.computeIfAbsent(ip, k -> newSmsBucket()).tryConsume(1);
+    public boolean tryConsumeJoin(String ip) {
+        return joinBuckets.computeIfAbsent(ip, k -> newJoinBucket()).tryConsume(1);
     }
 }

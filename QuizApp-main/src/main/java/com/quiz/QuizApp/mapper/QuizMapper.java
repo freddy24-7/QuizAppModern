@@ -33,17 +33,6 @@ public class QuizMapper {
 
         quiz.setQuestions(questions);
 
-        if (dto.getParticipants() != null) {
-            List<Participant> participants = dto.getParticipants().stream().map(pDto -> {
-                Participant p = new Participant();
-                p.setPhoneNumber(pDto.getPhoneNumber());
-                p.setQuiz(quiz);
-                return p;
-            }).collect(Collectors.toList());
-
-            quiz.setParticipants(participants);
-        }
-
         return quiz;
     }
 
@@ -73,16 +62,6 @@ public class QuizMapper {
         }).collect(Collectors.toList());
 
         dto.setQuestions(questionDTOs);
-
-        if (quiz.getParticipants() != null) {
-            List<ParticipantDTO> participantDTOs = quiz.getParticipants().stream().map(p -> {
-                ParticipantDTO pDto = new ParticipantDTO();
-                pDto.setId(p.getId());
-                pDto.setPhoneNumber(p.getPhoneNumber());
-                return pDto;
-            }).collect(Collectors.toList());
-            dto.setParticipants(participantDTOs);
-        }
 
         return dto;
     }

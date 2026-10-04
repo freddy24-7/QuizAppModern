@@ -23,12 +23,10 @@ export interface QuizDTO {
   startTime: string;
   closed: boolean;
   questions: Question[];
-  participants: { phoneNumber: string }[];
 }
 
 export interface QuizAnswerResponse {
-  phoneNumber: string;
-  username: string;
+  participantId: number;
   questionId: number;
   selectedAnswer: string;
   quizId: number;
@@ -62,10 +60,14 @@ export interface ResultsResponse {
 }
 
 export interface LobbyStatus {
-  totalParticipants: number;
-  readyCount: number;
-  allReady: boolean;
-  readyUsernames: string[];
+  joinedCount: number;
+  started: boolean;
+  usernames: string[];
+}
+
+export interface JoinedParticipant {
+  participantId: number;
+  username: string;
 }
 
 const api = {
@@ -133,12 +135,19 @@ const api = {
     }
   },
 
-  markReady: async (quizId: number, phoneNumber: string, username: string): Promise<void> => {
-    const url = `${BASE_URL}/api/quizzes/${quizId}/ready`.replace(/([^:]\/)\/+/g, '$1');
-    await axios.post(url, { phoneNumber, username });
+  joinQuiz: async (quizId: number, username: string): Promise<JoinedParticipant> => {
+    const url = `${BASE_URL}/api/quizzes/${quizId}/join`.replace(/([^:]\/)\/+/g, '$1');
+    const response = await axios.post<JoinedParticipant>(url, { username });
+    return response.data;
   },
 
-  getLobbyStatus: async (quizId: number): Promise<LobbyStatus> => {
+  startQuiz: async (quizId: string | number): Promise<LobbyStatus> => {
+    const url = `${BASE_URL}/api/quizzes/${quizId}/start`.replace(/([^:]\/)\/+/g, '$1');
+    const response = await axios.post<LobbyStatus>(url);
+    return response.data;
+  },
+
+  getLobbyStatus: async (quizId: string | number): Promise<LobbyStatus> => {
     const url = `${BASE_URL}/api/quizzes/${quizId}/lobby`.replace(/([^:]\/)\/+/g, '$1');
     const response = await axios.get<LobbyStatus>(url);
     return response.data;

@@ -5,18 +5,43 @@ import { AxiosError } from 'axios';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import api, { LobbyStatus, Question, QuizAnswerResponse, QuizDTO } from '../services/api';
+import api, {
+  JoinedParticipant,
+  LobbyStatus,
+  Question,
+  QuizAnswerResponse,
+  QuizDTO,
+} from '../services/api';
+
+const MAX_NAME_LENGTH = 40;
+
+const participantStorageKey = (quizId: number) => `quiz-${quizId}-participant`;
+
+// Remembers who this device joined as, so a refresh does not create a second participant
+function loadStoredParticipant(quizId: number | null): JoinedParticipant | null {
+  if (!quizId) return null;
+  try {
+    const raw = sessionStorage.getItem(participantStorageKey(quizId));
+    return raw ? (JSON.parse(raw) as JoinedParticipant) : null;
+  } catch {
+    return null;
+  }
+}
 
 const QuizResponse = () => {
   const [searchParams] = useSearchParams();
   const quizIdParam = searchParams.get('quizId');
-  const rawPhone = searchParams.get('phoneNumber') ?? '';
-  // URLSearchParams decodes '+' as a space; restore it to '+' for E.164 numbers
-  const phoneNumber = rawPhone.startsWith(' ') ? '+' + rawPhone.slice(1) : rawPhone;
   const quizId = quizIdParam ? parseInt(quizIdParam, 10) : null;
 
-  const [username, setUsername] = useState('');
-  const [currentStep, setCurrentStep] = useState<'username' | 'lobby' | 'questions'>('username');
+  const [participant, setParticipant] = useState<JoinedParticipant | null>(() =>
+    loadStoredParticipant(quizId),
+  );
+  const [username, setUsername] = useState(participant?.username ?? '');
+  const [joinError, setJoinError] = useState('');
+  const [isJoining, setIsJoining] = useState(false);
+  const [currentStep, setCurrentStep] = useState<'username' | 'lobby' | 'questions'>(
+    participant ? 'lobby' : 'username',
+  );
   const [lobbyStatus, setLobbyStatus] = useState<LobbyStatus | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -29,20 +54,13 @@ const QuizResponse = () => {
   const [isTimeUp, setIsTimeUp] = useState(false);
   const [lastSubmissionTime, setLastSubmissionTime] = useState<number>(0);
 
-  // Log initial mount and parameters
-  useEffect(() => {
-    console.log('QuizResponse component mounted');
-    console.log('Current quizId from URL:', quizId);
-    console.log('Current phoneNumber from URL:', phoneNumber);
-  }, [quizId, phoneNumber]);
-
   // Fetch quiz details when component mounts
   useEffect(() => {
     const fetchQuizDetails = async () => {
       try {
-        if (!quizId || !phoneNumber) {
-          console.error('Missing quizId or phoneNumber in URL parameters');
-          throw new Error('Quiz ID and phone number are required');
+        if (!quizId) {
+          console.error('Missing quizId in URL parameters');
+          throw new Error('Quiz ID is required');
         }
         console.log('Starting to fetch quiz details for quiz:', quizId);
 
@@ -95,7 +113,7 @@ const QuizResponse = () => {
       }
     };
     fetchQuizDetails();
-  }, [quizId, phoneNumber]);
+  }, [quizId]);
 
   useEffect(() => {
     if (currentStep !== 'lobby' || !quizId) return;
@@ -106,14 +124,26 @@ const QuizResponse = () => {
       try {
         const status = await api.getLobbyStatus(quizId);
         if (cancelled) return;
+
+        // Stored participant belongs to an earlier quiz with the same ID — join again
+        if (participant && !status.usernames.includes(participant.username)) {
+          sessionStorage.removeItem(participantStorageKey(quizId));
+          setParticipant(null);
+          setCurrentStep('username');
+          return;
+        }
+
         setLobbyStatus(status);
 
-        if (status.allReady) {
+        if (status.started) {
           setCurrentStep('questions');
-          toast.success('All players are ready — quiz starting!');
+          toast.success('The quiz has started!');
         }
-      } catch {
-        if (!cancelled) {
+      } catch (err) {
+        if (cancelled) return;
+        if (err instanceof AxiosError && err.response?.status === 404) {
+          setError('This quiz is no longer available.');
+        } else {
           console.error('Failed to poll lobby status');
         }
       }
@@ -126,7 +156,7 @@ const QuizResponse = () => {
       cancelled = true;
       clearInterval(interval);
     };
-  }, [currentStep, quizId]);
+  }, [currentStep, quizId, participant]);
 
   // Timer effect
   useEffect(() => {
@@ -151,28 +181,61 @@ const QuizResponse = () => {
     }
   }, [currentStep, timeLeft, isTimeUp]);
 
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUsername(e.target.value);
+    if (joinError) setJoinError('');
+  };
+
   const handleUsernameSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim()) {
-      toast.error('Please enter your name');
+    const name = username.trim();
+    if (!name) {
+      setJoinError('Please enter your name.');
+      return;
+    }
+    if (name.length > MAX_NAME_LENGTH) {
+      setJoinError(`Name must be ${MAX_NAME_LENGTH} characters or fewer.`);
       return;
     }
 
     if (quizData?.closed) {
-      toast.error('This quiz is no longer accepting responses');
+      setJoinError('This quiz is no longer accepting responses.');
       return;
     }
 
-    if (!quizId || !phoneNumber) {
-      toast.error('Invalid quiz link.');
+    if (!quizId) {
+      setJoinError('Invalid quiz link.');
       return;
     }
 
+    setIsJoining(true);
     try {
-      await api.markReady(quizId, phoneNumber, username.trim());
+      const joined = await api.joinQuiz(quizId, name);
+      try {
+        sessionStorage.setItem(participantStorageKey(quizId), JSON.stringify(joined));
+      } catch {
+        // Storage unavailable (e.g. private mode) — joining still works for this page load
+      }
+      setParticipant(joined);
+      setUsername(joined.username);
       setCurrentStep('lobby');
-    } catch {
-      toast.error('Failed to join the lobby. Please try again.');
+    } catch (err) {
+      let msg = 'Failed to join the quiz. Please try again.';
+      if (err instanceof AxiosError) {
+        if (err.response?.status === 429) {
+          msg = 'Too many join attempts. Please wait a few minutes before trying again.';
+        } else if (err.response?.status === 404) {
+          msg = 'This quiz is no longer available.';
+        } else {
+          msg =
+            err.response?.data?.detail ||
+            err.response?.data?.errors?.username ||
+            msg;
+        }
+      }
+      setJoinError(msg);
+    } finally {
+      setIsJoining(false);
     }
   };
 
@@ -197,8 +260,8 @@ const QuizResponse = () => {
       setIsSubmitting(true);
       setLastSubmissionTime(now);
 
-      if (!quizId || !phoneNumber) {
-        console.error('Missing quizId or phoneNumber');
+      if (!quizId || !participant) {
+        console.error('Missing quizId or participant');
         toast.error('Invalid quiz link. Please check the URL.');
         return;
       }
@@ -206,8 +269,7 @@ const QuizResponse = () => {
       const currentQuestion = questions[currentQuestionIndex];
 
       const submissionData: QuizAnswerResponse = {
-        phoneNumber,
-        username,
+        participantId: participant.participantId,
         questionId: currentQuestion.id!,
         selectedAnswer,
         quizId,
@@ -281,45 +343,34 @@ const QuizResponse = () => {
   }
 
   if (currentStep === 'lobby') {
-    const waitingFor = lobbyStatus
-      ? lobbyStatus.totalParticipants - lobbyStatus.readyCount
-      : 0;
-
     return (
       <div className="max-w-md mx-auto mt-12 p-6 bg-card border border-border rounded-xl text-center">
         <div className="mb-4">
           <div className="inline-flex items-center justify-center size-12 rounded-full bg-primary/10 mb-3">
             <div className="animate-spin rounded-full h-5 w-5 border-2 border-primary border-t-transparent" />
           </div>
-          <h2 className="text-lg font-semibold text-foreground">Waiting for players</h2>
+          <h2 className="text-lg font-semibold text-foreground">You&apos;re in, {username}!</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            The quiz will start when everyone is ready.
+            Waiting for the host to start the quiz.
           </p>
         </div>
 
         {lobbyStatus && (
-          <div className="space-y-4">
+          <div className="space-y-4" aria-live="polite">
             <div className="flex items-center justify-center gap-2">
               <span className="text-2xl font-bold text-primary tabular-nums">
-                {lobbyStatus.readyCount}
+                {lobbyStatus.joinedCount}
               </span>
               <span className="text-sm text-muted-foreground">
-                / {lobbyStatus.totalParticipants} ready
+                player{lobbyStatus.joinedCount !== 1 ? 's' : ''} joined
               </span>
             </div>
 
-            <div className="w-full bg-muted rounded-full h-2">
-              <div
-                className="bg-primary h-2 rounded-full transition-all duration-500"
-                style={{ width: `${(lobbyStatus.readyCount / lobbyStatus.totalParticipants) * 100}%` }}
-              />
-            </div>
-
-            {lobbyStatus.readyUsernames.length > 0 && (
+            {lobbyStatus.usernames.length > 0 && (
               <div className="pt-2 border-t border-border">
-                <p className="text-xs text-muted-foreground mb-2">Players ready:</p>
+                <p className="text-xs text-muted-foreground mb-2">Players joined:</p>
                 <div className="flex flex-wrap justify-center gap-1.5">
-                  {lobbyStatus.readyUsernames.map((name) => (
+                  {lobbyStatus.usernames.map((name) => (
                     <span
                       key={name}
                       className="inline-flex items-center px-2 py-0.5 rounded-md bg-primary/10 text-xs font-medium text-primary"
@@ -329,12 +380,6 @@ const QuizResponse = () => {
                   ))}
                 </div>
               </div>
-            )}
-
-            {waitingFor > 0 && (
-              <p className="text-xs text-muted-foreground">
-                Waiting for {waitingFor} more player{waitingFor !== 1 ? 's' : ''}...
-              </p>
             )}
           </div>
         )}
@@ -348,26 +393,30 @@ const QuizResponse = () => {
         <h2 className="text-xl font-semibold text-foreground mb-1">
           {quizData?.title || 'Quiz'}
         </h2>
-        <p className="text-sm text-muted-foreground mb-6">Enter your name to begin.</p>
-        <form onSubmit={handleUsernameSubmit} className="space-y-5">
+        <p className="text-sm text-muted-foreground mb-6">Enter your name to join.</p>
+        <form onSubmit={handleUsernameSubmit} className="space-y-5" noValidate>
           <div className="space-y-2">
             <Label htmlFor="username" className="text-sm">Your Name</Label>
             <Input
               id="username"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={handleUsernameChange}
               placeholder="Enter your name"
-              required
+              maxLength={MAX_NAME_LENGTH}
+              aria-describedby={joinError ? 'username-error' : undefined}
+              aria-invalid={!!joinError}
               className="h-9 text-sm"
             />
+            {joinError && (
+              <p id="username-error" className="text-destructive text-xs" role="alert">
+                {joinError}
+              </p>
+            )}
           </div>
-          <Button type="submit" className="w-full">
-            Start Quiz
+          <Button type="submit" className="w-full" disabled={isJoining}>
+            {isJoining ? 'Joining...' : 'Join Quiz'}
           </Button>
           <div className="flex gap-4 text-xs text-muted-foreground">
-            {quizData?.startTime && (
-              <p>Starts: {new Date(quizData.startTime).toLocaleString()}</p>
-            )}
             {quizData?.durationInSeconds && (
               <p>Duration: {Math.floor(quizData.durationInSeconds / 60)} min</p>
             )}

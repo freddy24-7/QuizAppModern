@@ -7,8 +7,6 @@ import { Button } from './ui/button';
 import { BASE_URL } from '../services/api';
 import QuizInfoSection from './sections/QuizInfoSection';
 import QuestionItem from './questions/QuestionItem';
-import RecipientsSection from './sections/RecipientsSection';
-import ConfirmSendDialog from './ConfirmSendDialog';
 import AiGeneratePanel from './AiGeneratePanel';
 
 interface Option {
@@ -21,15 +19,10 @@ interface Question {
   options: Option[];
 }
 
-interface Participant {
-  phoneNumber: string;
-}
-
 interface QuizData {
   title: string;
   durationInSeconds: number;
   questions: Question[];
-  participants: Participant[];
 }
 
 interface QuestionErrors {
@@ -42,10 +35,7 @@ interface FormErrors {
   title?: string;
   duration?: string;
   questions: QuestionErrors[];
-  participants: (string | undefined)[];
 }
-
-const E164_REGEX = /^\+[1-9]\d{7,14}$/;
 
 const EMPTY_OPTION = (): Option => ({ text: '', correct: false });
 
@@ -63,7 +53,6 @@ const EMPTY_QUESTION_ERRORS = (): QuestionErrors => ({
 function validateQuizData(data: QuizData): FormErrors {
   const errors: FormErrors = {
     questions: data.questions.map(() => EMPTY_QUESTION_ERRORS()),
-    participants: data.participants.map(() => undefined),
   };
 
   const titleTrimmed = data.title.trim();
@@ -114,29 +103,14 @@ function validateQuizData(data: QuizData): FormErrors {
     }
   });
 
-  data.participants.forEach((p, pi) => {
-    const phone = p.phoneNumber.trim();
-    if (!phone) {
-      errors.participants[pi] = 'Phone number is required.';
-    } else if (!E164_REGEX.test(phone)) {
-      errors.participants[pi] =
-        'Enter a valid E.164 phone number (e.g. +31612345678).';
-    }
-  });
-
   return errors;
 }
 
 function hasErrors(errors: FormErrors): boolean {
   if (errors.title || errors.duration) return true;
-  if (
-    errors.questions.some(
-      (q) => q.text || q.noCorrect || q.options.some(Boolean),
-    )
-  )
-    return true;
-  if (errors.participants.some(Boolean)) return true;
-  return false;
+  return errors.questions.some(
+    (q) => q.text || q.noCorrect || q.options.some(Boolean),
+  );
 }
 
 const QuizForm = () => {
@@ -148,18 +122,15 @@ const QuizForm = () => {
     title: '',
     durationInSeconds: 120,
     questions: [EMPTY_QUESTION()],
-    participants: [{ phoneNumber: '' }],
   });
 
   const [errors, setErrors] = useState<FormErrors>({
     questions: [EMPTY_QUESTION_ERRORS()],
-    participants: [undefined],
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<
-    'idle' | 'sending' | 'success' | 'error'
+    'idle' | 'creating' | 'success' | 'error'
   >('idle');
   const [questionMode, setQuestionMode] = useState<'manual' | 'ai'>(initialMode);
 
@@ -295,56 +266,16 @@ const QuizForm = () => {
     }));
   };
 
-  const handlePhoneChange = (index: number, value: string) => {
-    setQuizData((prev) => {
-      const participants = [...prev.participants];
-      participants[index] = { phoneNumber: value };
-      return { ...prev, participants };
-    });
-    setErrors((prev) => {
-      const participants = [...prev.participants];
-      participants[index] = undefined;
-      return { ...prev, participants };
-    });
-  };
-
-  const handleAddParticipant = () => {
-    setQuizData((prev) => ({
-      ...prev,
-      participants: [...prev.participants, { phoneNumber: '' }],
-    }));
-    setErrors((prev) => ({
-      ...prev,
-      participants: [...prev.participants, undefined],
-    }));
-  };
-
-  const handleRemoveParticipant = (index: number) => {
-    if (quizData.participants.length <= 1) return;
-    setQuizData((prev) => ({
-      ...prev,
-      participants: prev.participants.filter((_, i) => i !== index),
-    }));
-    setErrors((prev) => ({
-      ...prev,
-      participants: prev.participants.filter((_, i) => i !== index),
-    }));
-  };
-
-  const handleSendClick = () => {
+  const handleCreateClick = async () => {
     const validationErrors = validateQuizData(quizData);
     setErrors(validationErrors);
     if (hasErrors(validationErrors)) {
-      toast.error('Please fix the errors above before sending.');
+      toast.error('Please fix the errors above before creating the quiz.');
       return;
     }
-    setShowConfirmDialog(true);
-  };
 
-  const handleConfirmSend = async () => {
-    setShowConfirmDialog(false);
     setIsSubmitting(true);
-    setSubmitStatus('sending');
+    setSubmitStatus('creating');
 
     try {
       const payload = {
@@ -359,9 +290,6 @@ const QuizForm = () => {
             correct: o.correct,
           })),
         })),
-        participants: quizData.participants.map((p) => ({
-          phoneNumber: p.phoneNumber.trim(),
-        })),
       };
 
       const res = await axios.post(`${BASE_URL}/api/quizzes`, payload);
@@ -371,7 +299,7 @@ const QuizForm = () => {
       }
 
       setSubmitStatus('success');
-      toast.success('Quiz created and invites sent!');
+      toast.success('Quiz created! Share the QR code so players can join.');
       navigate(`/quiz/results/${res.data.id}`);
     } catch (err) {
       setSubmitStatus('error');
@@ -390,8 +318,6 @@ const QuizForm = () => {
     }
   };
 
-  const handleCancelConfirm = () => setShowConfirmDialog(false);
-
   const handleQuestionsGenerated = (
     generated: { text: string; options: { text: string; correct: boolean }[] }[],
     topic: string,
@@ -409,9 +335,9 @@ const QuizForm = () => {
   return (
     <div className="max-w-3xl mx-auto px-6 py-10 space-y-10">
       <div aria-live="polite" className="sr-only">
-        {submitStatus === 'sending' && 'Sending quiz...'}
-        {submitStatus === 'success' && 'Quiz sent successfully.'}
-        {submitStatus === 'error' && 'Failed to send quiz.'}
+        {submitStatus === 'creating' && 'Creating quiz...'}
+        {submitStatus === 'success' && 'Quiz created successfully.'}
+        {submitStatus === 'error' && 'Failed to create quiz.'}
       </div>
 
       <div>
@@ -423,7 +349,7 @@ const QuizForm = () => {
             Create a New Quiz
           </span>
         </h1>
-        <p className="mt-1 text-sm text-muted-foreground">Fill in the details below, add questions, and send to your recipients.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Fill in the details below and add questions. Players join by scanning a QR code once the quiz is created.</p>
       </div>
 
       {/* Section 1: Quiz Info */}
@@ -486,46 +412,24 @@ const QuizForm = () => {
         )}
       </section>
 
-      {/* Section 3: Recipients */}
-      <section aria-labelledby="section-recipients" className="space-y-4">
-        <h2 id="section-recipients" className="text-base font-semibold text-foreground border-b border-border pb-2">
-          Recipients
-        </h2>
-        <RecipientsSection
-          participants={quizData.participants}
-          errors={errors.participants}
-          onChange={handlePhoneChange}
-          onAdd={handleAddParticipant}
-          onRemove={handleRemoveParticipant}
-        />
-      </section>
-
-      {/* Section 4: Send */}
+      {/* Section 3: Create */}
       <section className="pt-4 border-t border-border">
-        <h2 className="sr-only">Send Quiz</h2>
+        <h2 className="sr-only">Create Quiz</h2>
         <button
-          onClick={handleSendClick}
+          onClick={handleCreateClick}
           disabled={isSubmitting}
           className="w-full sm:w-auto text-base px-10 h-12 rounded-xl font-semibold text-white shadow-md transition-all hover:opacity-90 hover:shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ backgroundImage: 'linear-gradient(135deg, #f97316 0%, #ef4444 100%)' }}
         >
-          {isSubmitting ? 'Sending...' : 'Send Quiz'}
+          {isSubmitting ? 'Creating...' : 'Create Quiz'}
         </button>
       </section>
-
-      <ConfirmSendDialog
-        isOpen={showConfirmDialog}
-        questionCount={quizData.questions.length}
-        participantCount={quizData.participants.length}
-        onConfirm={handleConfirmSend}
-        onCancel={handleCancelConfirm}
-      />
 
       {isSubmitting && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
           <div className="flex flex-col items-center gap-3">
             <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent" />
-            <p className="text-sm font-medium text-foreground">Creating quiz &amp; sending invites...</p>
+            <p className="text-sm font-medium text-foreground">Creating quiz...</p>
           </div>
         </div>
       )}

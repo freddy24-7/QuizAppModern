@@ -1,13 +1,14 @@
 package com.quiz.QuizApp.controllers;
 
+import com.quiz.QuizApp.dto.JoinRequestDTO;
+import com.quiz.QuizApp.dto.JoinResponseDTO;
 import com.quiz.QuizApp.dto.LobbyStatusDTO;
 import com.quiz.QuizApp.dto.QuizDTO;
 import com.quiz.QuizApp.dto.QuizSummaryDTO;
-import com.quiz.QuizApp.dto.ReadyRequestDTO;
+import com.quiz.QuizApp.domain.Participant;
 import com.quiz.QuizApp.domain.Quiz;
 import com.quiz.QuizApp.exception.RateLimitExceededException;
 import com.quiz.QuizApp.mapper.QuizMapper;
-import com.quiz.QuizApp.service.QuizInviteService;
 import com.quiz.QuizApp.service.QuizService;
 import com.quiz.QuizApp.service.RateLimiterService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,14 +32,11 @@ public class QuizController {
     private static final Logger logger = LoggerFactory.getLogger(QuizController.class);
 
     private final QuizService quizService;
-    private final QuizInviteService quizInviteService;
     private final RateLimiterService rateLimiterService;
 
     public QuizController(QuizService quizService,
-                          QuizInviteService quizInviteService,
                           RateLimiterService rateLimiterService) {
         this.quizService = quizService;
-        this.quizInviteService = quizInviteService;
         this.rateLimiterService = rateLimiterService;
     }
 
@@ -54,18 +52,9 @@ public class QuizController {
                     "You've reached the quiz creation limit. Please try again in an hour.");
         }
 
-        if (!rateLimiterService.tryConsumeSmsSubmission(ip)) {
-            response.setHeader("Retry-After", "3600");
-            throw new RateLimitExceededException(
-                    "You've reached the SMS sending limit. Please try again in an hour.");
-        }
-
         logger.info("Creating quiz with title: {}", dto.getTitle());
         var created = quizService.createQuiz(dto);
         logger.info("Quiz created with ID: {}", created.getId());
-
-        quizInviteService.sendQuizInvites(created.getId());
-        logger.info("Invites sent for quiz ID: {}", created.getId());
 
         return ResponseEntity.ok(QuizMapper.toDto(created));
     }
@@ -116,11 +105,26 @@ public class QuizController {
         return ResponseEntity.ok("All quizzes have been deleted.");
     }
 
-    @PostMapping("/{id}/ready")
-    public ResponseEntity<?> markReady(@PathVariable Long id,
-                                       @RequestBody ReadyRequestDTO dto) {
-        logger.info("Participant {} marking ready for quiz {}", dto.getPhoneNumber(), id);
-        return quizService.markParticipantReady(id, dto.getPhoneNumber(), dto.getUsername());
+    @PostMapping("/{id}/join")
+    public ResponseEntity<JoinResponseDTO> joinQuiz(@PathVariable Long id,
+                                                    @Valid @RequestBody JoinRequestDTO dto,
+                                                    HttpServletRequest request,
+                                                    HttpServletResponse response) {
+        if (!rateLimiterService.tryConsumeJoin(resolveClientIp(request))) {
+            response.setHeader("Retry-After", "3600");
+            throw new RateLimitExceededException(
+                    "Too many join attempts. Please try again later.");
+        }
+
+        Participant participant = quizService.joinQuiz(id, dto.getUsername());
+        logger.info("Participant {} joined quiz {}", participant.getId(), id);
+        return ResponseEntity.ok(new JoinResponseDTO(participant.getId(), participant.getUsername()));
+    }
+
+    @PostMapping("/{id}/start")
+    public ResponseEntity<LobbyStatusDTO> startQuiz(@PathVariable Long id) {
+        logger.info("Starting quiz {}", id);
+        return ResponseEntity.ok(quizService.startQuiz(id));
     }
 
     @GetMapping("/{id}/lobby")

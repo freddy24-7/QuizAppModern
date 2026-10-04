@@ -7,7 +7,8 @@ and result aggregation.
 📦 Features
 
 * Create quizzes with questions and answer options
-* Add participants by phone number
+* Participants join with a name via a QR code link (no phone numbers)
+* Host starts the quiz once players have joined
 * Record and update user responses
 * Automatically close quizzes after timeout
 * Track quiz progress (per user)
@@ -48,6 +49,11 @@ Quiz Management
 * GET /api/quizzes/{id} — Get quiz details
 * DELETE /api/quizzes/{id} — Delete quiz
 
+Joining
+* POST /api/quizzes/{id}/join — Join a quiz with a name; returns a participantId
+* GET /api/quizzes/{id}/lobby — Who has joined, and whether the quiz has started
+* POST /api/quizzes/{id}/start — Host starts the quiz (no joins after this)
+
 Responses
 * POST /api/responses — Submit or update answer
 * GET /api/responses/results/{quizId} — Get aggregated results
@@ -71,8 +77,5 @@ Sample Payload (POST /api/quizzes)
         { "text": "Madrid", "correct": false }
       ]
     }
-  ],
-  "participants": [
-    { "phoneNumber": "0612345678" }
   ]
 }

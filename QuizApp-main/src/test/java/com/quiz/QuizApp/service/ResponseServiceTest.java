@@ -41,10 +41,11 @@ class ResponseServiceTest {
         quiz.setId(1L);
         quiz.setDurationInSeconds(120);
         quiz.setClosed(false);
+        quiz.setStarted(true);
 
         participant = new Participant();
         participant.setId(10L);
-        participant.setPhoneNumber("+31612345678");
+        participant.setUsername("TestUser");
         participant.setQuiz(quiz);
 
         correctOption = new AnswerOption();
@@ -64,10 +65,9 @@ class ResponseServiceTest {
         question.setOptions(List.of(correctOption, wrongOption));
     }
 
-    private ResponseDTO buildDto(String phone, Long quizId, Long questionId, String answer) {
+    private ResponseDTO buildDto(Long participantId, Long quizId, Long questionId, String answer) {
         ResponseDTO dto = new ResponseDTO();
-        dto.setPhoneNumber(phone);
-        dto.setUsername("TestUser");
+        dto.setParticipantId(participantId);
         dto.setQuizId(quizId);
         dto.setQuestionId(questionId);
         dto.setSelectedAnswer(answer);
@@ -76,7 +76,7 @@ class ResponseServiceTest {
 
     @Test
     void shouldSubmitAnswerSuccessfully() {
-        when(participantRepo.findByPhoneNumberAndQuiz_Id("+31612345678", 1L))
+        when(participantRepo.findByIdAndQuiz_Id(10L, 1L))
                 .thenReturn(Optional.of(participant));
         when(questionRepo.findById(50L)).thenReturn(Optional.of(question));
         when(responseRepo.findByParticipant_IdAndQuestion_Id(10L, 50L))
@@ -84,7 +84,7 @@ class ResponseServiceTest {
         when(responseRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         ResponseEntity<String> result = responseService.submitResponse(
-                buildDto("+31612345678", 1L, 50L, "Correct Answer"));
+                buildDto(10L, 1L, 50L, "Correct Answer"));
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         verify(responseRepo).save(any(Response.class));
@@ -92,12 +92,12 @@ class ResponseServiceTest {
 
     @Test
     void shouldRejectSubmissionWhenParticipantNotInThisQuiz() {
-        // Same phone number exists in quiz 2 but NOT in quiz 1 — the old findAll() bug
-        when(participantRepo.findByPhoneNumberAndQuiz_Id("+31612345678", 1L))
+        // Participant ID belongs to another quiz, not quiz 1
+        when(participantRepo.findByIdAndQuiz_Id(10L, 1L))
                 .thenReturn(Optional.empty());
 
         ResponseEntity<String> result = responseService.submitResponse(
-                buildDto("+31612345678", 1L, 50L, "Correct Answer"));
+                buildDto(10L, 1L, 50L, "Correct Answer"));
 
         assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
         verify(responseRepo, never()).save(any());
@@ -107,12 +107,12 @@ class ResponseServiceTest {
     void shouldAllowTwoPlayersInSameQuizToSubmitIndependently() {
         Participant player2 = new Participant();
         player2.setId(11L);
-        player2.setPhoneNumber("+31687654321");
+        player2.setUsername("SecondUser");
         player2.setQuiz(quiz);
 
-        when(participantRepo.findByPhoneNumberAndQuiz_Id("+31612345678", 1L))
+        when(participantRepo.findByIdAndQuiz_Id(10L, 1L))
                 .thenReturn(Optional.of(participant));
-        when(participantRepo.findByPhoneNumberAndQuiz_Id("+31687654321", 1L))
+        when(participantRepo.findByIdAndQuiz_Id(11L, 1L))
                 .thenReturn(Optional.of(player2));
         when(questionRepo.findById(50L)).thenReturn(Optional.of(question));
         when(responseRepo.findByParticipant_IdAndQuestion_Id(anyLong(), eq(50L)))
@@ -120,9 +120,9 @@ class ResponseServiceTest {
         when(responseRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         ResponseEntity<String> r1 = responseService.submitResponse(
-                buildDto("+31612345678", 1L, 50L, "Correct Answer"));
+                buildDto(10L, 1L, 50L, "Correct Answer"));
         ResponseEntity<String> r2 = responseService.submitResponse(
-                buildDto("+31687654321", 1L, 50L, "Wrong Answer"));
+                buildDto(11L, 1L, 50L, "Wrong Answer"));
 
         assertEquals(HttpStatus.OK, r1.getStatusCode());
         assertEquals(HttpStatus.OK, r2.getStatusCode());
@@ -131,12 +131,12 @@ class ResponseServiceTest {
 
     @Test
     void shouldRejectSubmissionForUnknownQuestion() {
-        when(participantRepo.findByPhoneNumberAndQuiz_Id("+31612345678", 1L))
+        when(participantRepo.findByIdAndQuiz_Id(10L, 1L))
                 .thenReturn(Optional.of(participant));
         when(questionRepo.findById(999L)).thenReturn(Optional.empty());
 
         ResponseEntity<String> result = responseService.submitResponse(
-                buildDto("+31612345678", 1L, 999L, "Any Answer"));
+                buildDto(10L, 1L, 999L, "Any Answer"));
 
         assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
         verify(responseRepo, never()).save(any());
@@ -145,15 +145,44 @@ class ResponseServiceTest {
     @Test
     void shouldRejectSubmissionWhenQuizIsClosed() {
         quiz.setClosed(true);
-        when(participantRepo.findByPhoneNumberAndQuiz_Id("+31612345678", 1L))
+        when(participantRepo.findByIdAndQuiz_Id(10L, 1L))
                 .thenReturn(Optional.of(participant));
         when(questionRepo.findById(50L)).thenReturn(Optional.of(question));
 
         ResponseEntity<String> result = responseService.submitResponse(
-                buildDto("+31612345678", 1L, 50L, "Correct Answer"));
+                buildDto(10L, 1L, 50L, "Correct Answer"));
 
         assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
         verify(responseRepo, never()).save(any());
+    }
+
+    @Test
+    void shouldRejectSubmissionBeforeQuizHasStarted() {
+        quiz.setStarted(false);
+        when(participantRepo.findByIdAndQuiz_Id(10L, 1L))
+                .thenReturn(Optional.of(participant));
+        when(questionRepo.findById(50L)).thenReturn(Optional.of(question));
+
+        ResponseEntity<String> result = responseService.submitResponse(
+                buildDto(10L, 1L, 50L, "Correct Answer"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
+        verify(responseRepo, never()).save(any());
+    }
+
+    @Test
+    void shouldStoreParticipantNameOnResponse() {
+        when(participantRepo.findByIdAndQuiz_Id(10L, 1L))
+                .thenReturn(Optional.of(participant));
+        when(questionRepo.findById(50L)).thenReturn(Optional.of(question));
+        when(responseRepo.findByParticipant_IdAndQuestion_Id(10L, 50L))
+                .thenReturn(Optional.empty());
+        when(responseRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        responseService.submitResponse(buildDto(10L, 1L, 50L, "Correct Answer"));
+
+        verify(responseRepo).save(argThat(r ->
+                "TestUser".equals(((Response) r).getUsername())));
     }
 
     @Test
@@ -164,14 +193,14 @@ class ResponseServiceTest {
         existing.setQuestion(question);
         existing.setSelectedAnswer("Old Answer");
 
-        when(participantRepo.findByPhoneNumberAndQuiz_Id("+31612345678", 1L))
+        when(participantRepo.findByIdAndQuiz_Id(10L, 1L))
                 .thenReturn(Optional.of(participant));
         when(questionRepo.findById(50L)).thenReturn(Optional.of(question));
         when(responseRepo.findByParticipant_IdAndQuestion_Id(10L, 50L))
                 .thenReturn(Optional.of(existing));
         when(responseRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        responseService.submitResponse(buildDto("+31612345678", 1L, 50L, "New Answer"));
+        responseService.submitResponse(buildDto(10L, 1L, 50L, "New Answer"));
 
         verify(responseRepo, times(1)).save(argThat(r ->
                 ((Response) r).getSelectedAnswer().equals("New Answer")));

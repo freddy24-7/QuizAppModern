@@ -40,14 +40,14 @@ class QuizWebSocketControllerTest {
     @Test
     void shouldBroadcastScoreboardWhenAnswerReceived() {
         AnswerSubmission submission = new AnswerSubmission();
-        submission.setPlayerId("+1234567890");
+        submission.setParticipantId(7L);
         submission.setUsername("user1");
         submission.setQuestionId(1L);
         submission.setQuizId(99L);
         submission.setSelectedAnswer("Correct Answer");
 
         Participant participant = new Participant();
-        participant.setPhoneNumber("+1234567890");
+        participant.setId(7L);
 
         Question question = new Question();
         question.setId(1L);
@@ -58,7 +58,7 @@ class QuizWebSocketControllerTest {
         correctOption.setQuestion(question);
         question.setOptions(List.of(correctOption));
 
-        when(participantRepo.findByPhoneNumber("+1234567890")).thenReturn(Optional.of(participant));
+        when(participantRepo.findByIdAndQuiz_Id(7L, 99L)).thenReturn(Optional.of(participant));
         when(questionRepo.findWithOptionsById(1L)).thenReturn(Optional.of(question));
         Response savedResponse = new Response();
         savedResponse.setUsername("user1");

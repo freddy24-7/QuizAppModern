@@ -7,9 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ParticipantRepository extends JpaRepository<Participant, Long> {
-    Optional<Participant> findByPhoneNumber(String phoneNumber);
-
-    Optional<Participant> findByPhoneNumberAndQuiz_Id(String phoneNumber, Long quizId);
+    Optional<Participant> findByIdAndQuiz_Id(Long id, Long quizId);
 
     void deleteAllByQuiz_Id(Long quizId);
 

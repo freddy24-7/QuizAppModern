@@ -1,5 +1,7 @@
 package com.quiz.QuizApp.config;
 
+import com.quiz.QuizApp.exception.QuizNotFoundException;
+import com.quiz.QuizApp.exception.QuizStateException;
 import com.quiz.QuizApp.exception.RateLimitExceededException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +36,22 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleRateLimit(RateLimitExceededException ex) {
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.TOO_MANY_REQUESTS);
         problem.setTitle("Rate limit exceeded");
+        problem.setDetail(ex.getMessage());
+        return problem;
+    }
+
+    @ExceptionHandler(QuizNotFoundException.class)
+    public ProblemDetail handleQuizNotFound(QuizNotFoundException ex) {
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        problem.setTitle("Quiz not found");
+        problem.setDetail(ex.getMessage());
+        return problem;
+    }
+
+    @ExceptionHandler(QuizStateException.class)
+    public ProblemDetail handleQuizState(QuizStateException ex) {
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+        problem.setTitle("Quiz not available");
         problem.setDetail(ex.getMessage());
         return problem;
     }

@@ -19,7 +19,7 @@ const About: React.FC<AboutProps> = ({ isOpen, onClose }) => {
           <ul className="list-disc list-inside space-y-2">
             <li>A React Vite frontend for blazing-fast development and optimal performance</li>
             <li>A Spring Boot backend demonstrating enterprise-grade Java capabilities</li>
-            <li>Real-world features like SMS integration and real-time updates</li>
+            <li>Real-world features like QR code joining and real-time updates</li>
           </ul>
           <p className="mt-4">
             The application serves as a practical example of full-stack development using Java and React.
@@ -38,17 +38,17 @@ const About: React.FC<AboutProps> = ({ isOpen, onClose }) => {
             <li>Choose &quot;Create Manually&quot; from the home page</li>
             <li>Set a quiz title and duration</li>
             <li>Write your own questions with multiple-choice answers</li>
-            <li>Add recipients by phone number and send</li>
+            <li>Create the quiz and show the QR code to your players</li>
           </ol>
           <p className="font-medium text-foreground mt-3">Option B: Generate with AI</p>
           <ol className="list-decimal list-inside space-y-1">
             <li>Choose &quot;Generate with AI&quot; from the home page</li>
             <li>Enter a topic (e.g. &quot;The Solar System&quot;) and pick how many questions</li>
             <li>AI generates the quiz using Google Gemini — review and edit as needed</li>
-            <li>Add recipients and send</li>
+            <li>Create the quiz and show the QR code to your players</li>
           </ol>
           <p className="mt-3">
-            Participants receive an SMS link. Everyone joins a lobby and the quiz starts when all players are ready.
+            Participants scan the QR code and enter a name to join the lobby. The quiz starts when the host clicks Start.
           </p>
         </div>
       ),
@@ -69,7 +69,7 @@ const About: React.FC<AboutProps> = ({ isOpen, onClose }) => {
           <p className="mt-4 font-medium">Key Features:</p>
           <ul className="list-disc list-inside space-y-2">
             <li>Create quizzes with questions and answer options</li>
-            <li>Add participants by phone number</li>
+            <li>Participants join with a name via a QR code link</li>
             <li>Record and update user responses</li>
             <li>Automatically close quizzes after timeout</li>
             <li>Track quiz progress (per user)</li>
@@ -96,7 +96,7 @@ const About: React.FC<AboutProps> = ({ isOpen, onClose }) => {
           <ul className="list-disc list-inside space-y-2">
             <li>AI-powered quiz generation from any topic</li>
             <li>Manual quiz creation with inline validation</li>
-            <li>Player lobby — quiz starts when everyone is ready</li>
+            <li>QR code lobby — the host starts the quiz once players have joined</li>
             <li>Real-time quiz participation with countdown timer</li>
             <li>Live result tracking with score distribution</li>
           </ul>
@@ -124,25 +124,16 @@ const About: React.FC<AboutProps> = ({ isOpen, onClose }) => {
       content: (
         <div className="space-y-4 text-muted-foreground text-sm">
           <div className="space-y-2">
-            <p className="font-medium">Phone Number Format:</p>
-            <p>Phone numbers must be in E.164 international format (e.g. +31612345678). This supports any country.</p>
-          </div>
-          <div className="space-y-2">
-            <p className="font-medium">Twilio Integration:</p>
-            <p>To enable SMS functionality:</p>
-            <ul className="list-disc list-inside space-y-2">
-              <li>Twilio credentials must be added to application.properties</li>
-              <li>The integration assumes a production environment</li>
-              <li>SMS features will not work with localhost in development</li>
-            </ul>
+            <p className="font-medium">Joining a Quiz:</p>
+            <p>No phone numbers are collected. Players scan the QR code on the host&apos;s screen, enter a name, and wait in the lobby until the host starts the quiz.</p>
           </div>
           <div className="space-y-2">
             <p className="font-medium">Data Privacy & Automatic Cleanup:</p>
             <p>
-              Quiz data is not stored permanently. Once results have been displayed, all quiz data — including questions, participant phone numbers, and responses — is automatically deleted from the backend when the quiz creator leaves the results page (by navigating away, closing the tab, or refreshing).
+              Quiz data is not stored permanently. Once results have been displayed, all quiz data — including questions, participant names, and responses — is automatically deleted from the backend when the quiz creator leaves the results page (by navigating away, closing the tab, or refreshing).
             </p>
             <p>
-              This means the app requires a live backend deployment to function correctly. Running the backend locally is insufficient for full use, as the SMS delivery and data lifecycle both depend on a persistent server environment. The backend must be deployed to a service such as Railway.
+              This means the app requires a live backend deployment to function correctly. Running the app only on localhost is insufficient for full use, as the QR code must point to an address that participants&apos; phones can reach. The backend must be deployed to a service such as Railway.
             </p>
           </div>
         </div>

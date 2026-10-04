@@ -4,22 +4,26 @@ import com.quiz.QuizApp.domain.Participant;
 import com.quiz.QuizApp.domain.Quiz;
 import com.quiz.QuizApp.dto.LobbyStatusDTO;
 import com.quiz.QuizApp.dto.QuizDTO;
+import com.quiz.QuizApp.exception.QuizNotFoundException;
+import com.quiz.QuizApp.exception.QuizStateException;
 import com.quiz.QuizApp.mapper.QuizMapper;
 import com.quiz.QuizApp.repository.ParticipantRepository;
 import com.quiz.QuizApp.repository.QuizRepository;
 import com.quiz.QuizApp.repository.ResponseRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class QuizService {
+
+    static final int MAX_PARTICIPANTS = 100;
 
     private final QuizRepository quizRepo;
     private final ParticipantRepository participantRepo;
@@ -87,46 +91,62 @@ public class QuizService {
     }
 
     @Transactional
-    public ResponseEntity<?> markParticipantReady(Long quizId, String phoneNumber, String username) {
-        Quiz quiz = quizRepo.findByIdWithParticipants(quizId).orElse(null);
-        if (quiz == null) {
-            return ResponseEntity.notFound().build();
+    public @NonNull Participant joinQuiz(Long quizId, String username) {
+        Quiz quiz = quizRepo.findByIdWithParticipants(quizId)
+                .orElseThrow(() -> new QuizNotFoundException(quizId));
+
+        if (quiz.isClosed()) {
+            throw new QuizStateException("This quiz is closed.");
+        }
+        if (quiz.isStarted()) {
+            throw new QuizStateException("This quiz has already started.");
+        }
+        if (quiz.getParticipants().size() >= MAX_PARTICIPANTS) {
+            throw new QuizStateException("This quiz is full.");
         }
 
-        Participant participant = quiz.getParticipants().stream()
-                .filter(p -> p.getPhoneNumber().equals(phoneNumber))
-                .findFirst()
-                .orElse(null);
-
-        if (participant == null) {
-            return ResponseEntity.badRequest().body("Participant not found for this quiz.");
+        String name = username.trim();
+        boolean nameTaken = quiz.getParticipants().stream()
+                .anyMatch(p -> name.equalsIgnoreCase(p.getUsername()));
+        if (nameTaken) {
+            throw new QuizStateException("That name is already taken. Please choose another.");
         }
 
-        participant.setReady(true);
-        participant.setUsername(username);
-        participantRepo.save(participant);
+        Participant participant = new Participant();
+        participant.setUsername(name);
+        participant.setQuiz(quiz);
+        return participantRepo.save(participant);
+    }
 
-        return ResponseEntity.ok("Participant marked as ready.");
+    @Transactional
+    public @NonNull LobbyStatusDTO startQuiz(Long quizId) {
+        Quiz quiz = quizRepo.findByIdWithParticipants(quizId)
+                .orElseThrow(() -> new QuizNotFoundException(quizId));
+
+        if (!quiz.isStarted()) {
+            if (quiz.getParticipants().isEmpty()) {
+                throw new QuizStateException("No participants have joined yet.");
+            }
+            quiz.setStarted(true);
+            // The answer window runs from the moment the host starts, not from creation
+            quiz.setStartTime(LocalDateTime.now());
+            quizRepo.save(quiz);
+        }
+
+        return toLobbyStatus(quiz);
     }
 
     @Transactional(readOnly = true)
     public @Nullable LobbyStatusDTO getLobbyStatus(Long quizId) {
-        Quiz quiz = quizRepo.findByIdWithParticipants(quizId).orElse(null);
-        if (quiz == null) {
-            return null;
-        }
+        return quizRepo.findByIdWithParticipants(quizId)
+                .map(this::toLobbyStatus)
+                .orElse(null);
+    }
 
-        List<Participant> participants = quiz.getParticipants();
-        int total = participants.size();
-        List<Participant> readyParticipants = participants.stream()
-                .filter(Participant::isReady)
+    private LobbyStatusDTO toLobbyStatus(Quiz quiz) {
+        List<String> usernames = quiz.getParticipants().stream()
+                .map(Participant::getUsername)
                 .toList();
-        int readyCount = readyParticipants.size();
-
-        List<String> readyUsernames = readyParticipants.stream()
-                .map(p -> p.getUsername() != null ? p.getUsername() : "Anonymous")
-                .toList();
-
-        return new LobbyStatusDTO(total, readyCount, readyCount == total, readyUsernames);
+        return new LobbyStatusDTO(usernames.size(), quiz.isStarted(), usernames);
     }
 }

@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-A quiz generation and distribution platform. Users create quizzes (manually or via AI), then send them to recipients via Twilio SMS. The backend is Java, the frontend is Vite/React.
+A quiz generation and distribution platform. Users create quizzes (manually or via AI); participants join by scanning a QR code shown on the host's screen and entering a name. No phone numbers are collected. The backend is Java, the frontend is Vite/React.
 
 ---
 
@@ -22,12 +22,12 @@ quiz-app/
 ### Backend
 - Java (Spring Boot)
 - Deployed on Railway (migrating from Vercel — see migration task below)
-- Twilio SDK for SMS delivery
 
 ### Frontend
 - Vite + React
 - Tailwind CSS (styling deferred to Cursor — see handoff section)
 - Gemini API for AI quiz generation
+- `qrcode.react` for the join QR code
 
 ---
 
@@ -40,7 +40,7 @@ Complete tasks in this order. Do not start a later task until the earlier one is
 Vercel is not suited for a Java backend (no JVM runtime support). The backend must move to Railway.
 
 - Create a `railway.toml` or `Dockerfile` in `backend/` if not already present
-- Ensure environment variables (Twilio credentials, DB config, etc.) are documented in `.env.example`
+- Ensure environment variables (DB config, etc.) are documented in `.env.example`
 - Update any hardcoded Vercel URLs in the frontend to use an environment variable: `VITE_API_BASE_URL`
 - Remove any Vercel-specific config (`vercel.json`) from the backend directory
 - Verify CORS settings allow the frontend origin (Vercel-hosted frontend calling Railway-hosted backend)
@@ -53,9 +53,9 @@ The current UI is a sequential modal chain. Replace this with a single-page, pro
 
 **Target pattern:**
 - All quiz creation steps visible on one page, grouped into logical sections
-- Sections: Quiz Info → Questions → Recipients → Send
+- Sections: Quiz Info → Questions → Create
 - Each section can be expanded/collapsed, but the full flow is visible at a glance
-- No modals except for confirmation dialogs (e.g., "Are you sure you want to send?")
+- No modals except for confirmation dialogs (e.g., "Are you sure you want to delete?")
 - Inline validation with clear error messages — no alert popups
 - Focus management: when a section completes, focus moves naturally to the next
 
@@ -78,7 +78,7 @@ Add an "AI Generate" mode alongside the existing manual quiz creation flow.
 3. User selects number of questions (slider or input: 5, 10, 15, 20)
 4. User clicks "Generate"
 5. App calls Gemini API (from the frontend — no backend involvement needed)
-6. Generated questions are loaded into the existing quiz form, ready to review/edit before sending
+6. Generated questions are loaded into the existing quiz form, ready to review/edit before creating the quiz
 
 **Gemini integration:**
 - Store the API key in `.env.local` as `VITE_GEMINI_API_KEY`
@@ -108,9 +108,9 @@ Add an "AI Generate" mode alongside the existing manual quiz creation flow.
 ### 4. Security & Resilience
 
 **Rate limiting (429 protection):**
-- Backend: add a per-IP rate limiter on quiz submission and SMS-send endpoints
+- Backend: add a per-IP rate limiter on quiz submission and quiz-join endpoints
   - Suggested: Spring's `Bucket4j` library or a simple in-memory token bucket
-  - Limit: 10 quiz submissions per IP per hour; 20 SMS sends per IP per hour
+  - Limit: 10 quiz submissions per IP per hour; 100 joins per IP per hour (a room of players often shares one IP)
   - Return HTTP 429 with a `Retry-After` header
 - Frontend: on 429 response, show a user-friendly message: "You've sent too many requests. Please wait a few minutes before trying again."
 - Gemini AI requests: debounce the Generate button (disable for 3 seconds after click); catch HTTP 429 from Gemini and show: "AI generation is temporarily unavailable — please try again shortly."
@@ -119,7 +119,7 @@ Add an "AI Generate" mode alongside the existing manual quiz creation flow.
 - Quiz title: required, 3–120 chars, no pure whitespace
 - Question text: required, 10–500 chars
 - Answer options: all 4 required, each 1–200 chars, must be distinct
-- Recipient phone numbers: validate E.164 format (`+[country code][number]`) before sending to Twilio
+- Participant name (join): required, 1–40 chars, unique within a quiz
 - AI topic field: see rules in section 3 above
 - Apply validation on both frontend (inline, immediate feedback) and backend (return 400 with field-level error messages)
 
@@ -129,7 +129,7 @@ Add an "AI Generate" mode alongside the existing manual quiz creation flow.
 - Error messages must be linked to their fields via `aria-describedby`
 - Color alone must not convey meaning (pair colors with text or icons)
 - The quiz creation flow must be navigable by keyboard only
-- Use `aria-live="polite"` regions for dynamic content (generation status, send confirmation)
+- Use `aria-live="polite"` regions for dynamic content (generation status, lobby player lists)
 - Test with a screen reader or axe-core before considering a feature done
 
 ---
@@ -143,16 +143,16 @@ Write meaningful tests for main functionality. Coverage completeness is not the 
 Use JUnit 5 + Mockito. Focus on:
 
 - `QuizService`: quiz creation, retrieval, validation edge cases
-- `SmsService`: Twilio call construction; test that invalid phone numbers are rejected before Twilio is called
-- `RateLimiter`: verify that the 11th request within the window returns 429
+- Join/start flow: joining creates a participant; joining is rejected once the quiz has started; answers are rejected before it starts
+- `RateLimiter`: verify that the 11th quiz submission within the window returns 429
 - Controller layer: test 400 responses for missing/invalid fields; test 429 response
 
 **Non-happy-path cases to cover:**
 - Submitting a quiz with no questions → 400
 - Submitting with duplicate answer options → 400
-- Phone number in wrong format → 400
+- Joining with a blank name → 400
+- Joining a started quiz or with a taken name → 409
 - Exceeding rate limit → 429
-- Twilio API failure → 502 with meaningful error, not a raw stack trace
 
 ### Frontend (React)
 
@@ -161,7 +161,8 @@ Use Vitest + React Testing Library. Focus on:
 - Quiz creation form: all required fields enforced; invalid inputs show inline errors
 - AI generation: successful generation populates the form; `insufficient_topic` error shows the user message; network error is handled gracefully
 - Rate limit response (429): correct user-facing message shown
-- Recipient phone field: accepts valid E.164, rejects garbage input
+- Host lobby: QR code encodes the join link; Start is disabled until a player has joined
+- Join form: blank name shows an inline error; server rejections (name taken, already started) are shown inline
 - Accessibility: all form fields have labels; error messages are associated via `aria-describedby`
 
 **Do not write tests for:**
@@ -212,9 +213,6 @@ Modern, clean, minimal. Think Linear or Vercel's dashboard aesthetic.
 
 ### Backend (`backend/.env.example`)
 ```
-TWILIO_ACCOUNT_SID=
-TWILIO_AUTH_TOKEN=
-TWILIO_FROM_NUMBER=
 DATABASE_URL=
 RAILWAY_ENVIRONMENT=production
 ```
@@ -249,5 +247,5 @@ VITE_GEMINI_API_KEY=
 
 - User authentication / accounts (not in scope)
 - Quiz analytics or response tracking (not in scope)
-- Email delivery (SMS only via Twilio)
+- Email or SMS delivery (participants join via QR code)
 - Backend AI integration (Gemini calls are frontend-only; backend handles quiz storage/sending the same way regardless of origin)

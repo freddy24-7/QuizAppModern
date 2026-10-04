@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api, { BASE_URL, QuizResult } from '../services/api';
+import { AxiosError } from 'axios';
+import api, { BASE_URL, LobbyStatus, QuizResult } from '../services/api';
 import { Button } from './ui/button';
+import HostLobby from './HostLobby';
 
 const QuizResults = () => {
   const { quizId } = useParams<{ quizId: string }>();
@@ -13,6 +15,12 @@ const QuizResults = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalQuestions, setTotalQuestions] = useState(0);
+  const [lobbyStatus, setLobbyStatus] = useState<LobbyStatus | null>(null);
+  const [isStarting, setIsStarting] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
+
+  const hasStarted = lobbyStatus?.started ?? false;
+  const joinUrl = `${window.location.origin}/quiz/respond?quizId=${quizId}`;
 
   const generateGreenShades = (score: number) => {
     return Array.from({ length: score }).map((_, index) => {
@@ -69,6 +77,50 @@ const QuizResults = () => {
 
     return () => clearInterval(interval);
   }, [fetchQuizDetails, fetchResults]);
+
+  // Poll the lobby until the host starts the quiz
+  useEffect(() => {
+    if (!quizId || hasStarted) return;
+
+    let cancelled = false;
+
+    const pollLobby = async () => {
+      try {
+        const status = await api.getLobbyStatus(quizId);
+        if (cancelled) return;
+        // Never let a slow poll overwrite the "started" state
+        setLobbyStatus((prev) => (prev?.started ? prev : status));
+      } catch {
+        if (!cancelled) {
+          console.error('Failed to poll lobby status');
+        }
+      }
+    };
+
+    void pollLobby();
+    const interval = setInterval(pollLobby, 3000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [quizId, hasStarted]);
+
+  const handleStartQuiz = async () => {
+    if (!quizId) return;
+    setIsStarting(true);
+    setStartError(null);
+    try {
+      const status = await api.startQuiz(quizId);
+      setLobbyStatus(status);
+    } catch (err) {
+      const detail =
+        err instanceof AxiosError ? err.response?.data?.detail : undefined;
+      setStartError(detail || 'Could not start the quiz. Please try again.');
+    } finally {
+      setIsStarting(false);
+    }
+  };
 
   // Wipe quiz data when user navigates away within the SPA (component unmount)
   useEffect(() => {
@@ -167,6 +219,23 @@ const QuizResults = () => {
         >
           Back to Home
         </Button>
+      </div>
+    );
+  }
+
+  if (!hasStarted) {
+    return (
+      <div className="max-w-md mx-auto px-6 py-10">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-8">
+          Invite Players
+        </h1>
+        <HostLobby
+          joinUrl={joinUrl}
+          lobbyStatus={lobbyStatus}
+          isStarting={isStarting}
+          startError={startError}
+          onStart={handleStartQuiz}
+        />
       </div>
     );
   }

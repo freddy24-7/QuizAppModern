@@ -30,10 +30,6 @@ class QuizMapperTest {
         qDto.setOptions(List.of(a1, a2));
         dto.setQuestions(List.of(qDto));
 
-        ParticipantDTO pDto = new ParticipantDTO();
-        pDto.setPhoneNumber("+1234567890");
-        dto.setParticipants(List.of(pDto));
-
         Quiz quiz = QuizMapper.fromDto(dto);
 
         assertEquals("Test Quiz", quiz.getTitle());
@@ -41,7 +37,7 @@ class QuizMapperTest {
         assertEquals(1, quiz.getQuestions().size());
         assertEquals("What is Java?", quiz.getQuestions().get(0).getText());
         assertEquals(2, quiz.getQuestions().get(0).getOptions().size());
-        assertEquals(1, quiz.getParticipants().size());
+        assertTrue(quiz.getParticipants().isEmpty());
     }
 
     @Test
@@ -60,10 +56,6 @@ class QuizMapperTest {
         question.setOptions(List.of(opt1));
         quiz.setQuestions(List.of(question));
 
-        Participant p = new Participant();
-        p.setPhoneNumber("+1111111111");
-        quiz.setParticipants(List.of(p));
-
         QuizDTO dto = QuizMapper.toDto(quiz);
 
         assertEquals("Mapped Quiz", dto.getTitle());
@@ -71,7 +63,5 @@ class QuizMapperTest {
         assertEquals("What is Spring?", dto.getQuestions().get(0).getText());
         assertEquals(1, dto.getQuestions().get(0).getOptions().size());
         assertEquals("Framework", dto.getQuestions().get(0).getOptions().get(0).getText());
-        assertEquals(1, dto.getParticipants().size());
-        assertEquals("+1111111111", dto.getParticipants().get(0).getPhoneNumber());
     }
 }

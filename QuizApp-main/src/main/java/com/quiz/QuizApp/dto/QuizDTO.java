@@ -32,7 +32,4 @@ public class QuizDTO {
     @NotEmpty(message = "Quiz must contain at least one question")
     @Valid
     private List<QuestionDTO> questions;
-
-    @Valid
-    private List<ParticipantDTO> participants;
 }

@@ -17,16 +17,16 @@ Modern, clean, minimal. Think Linear or Vercel's dashboard aesthetic.
 ## Components to Style
 
 ### Page-level components
-- `src/components/QuizForm.tsx` — single-page form with four sections (Quiz Info, Questions, Recipients, Send). Sections are separated by vertical spacing; the Send section has a single primary CTA button.
-- `src/components/QuizResponse.tsx` — participant quiz-taking view
-- `src/components/QuizResults.tsx` — paginated results table
+- `src/components/QuizForm.tsx` — single-page form with three sections (Quiz Info, Questions, Create). Sections are separated by vertical spacing; the Create section has a single primary CTA button.
+- `src/components/QuizResponse.tsx` — participant view: name form to join, waiting lobby, then quiz-taking
+- `src/components/QuizResults.tsx` — host page: shows HostLobby until the quiz starts, then the paginated results table
+- `src/components/HostLobby.tsx` — QR code, join link, live list of joined players, Start Quiz button
 - `src/components/Home.tsx` — landing page
 - `src/components/Header.tsx` — top navigation bar
 - `src/components/Footer.tsx` — footer
 
 ### Form sections (used inside QuizForm)
 - `src/components/sections/QuizInfoSection.tsx` — title + duration fields
-- `src/components/sections/RecipientsSection.tsx` — list of E.164 phone number inputs with add/remove
 
 ### Question components
 - `src/components/questions/QuestionItem.tsx` — expandable card per question. Has a header row (question number, preview text, error dot indicator, Remove button) and a collapsible body containing QuestionEditor.
@@ -37,7 +37,6 @@ Modern, clean, minimal. Think Linear or Vercel's dashboard aesthetic.
 - `src/components/AiGeneratePanel.tsx` — topic input, question count radio group, Generate button, status/error messages. Shown in the Questions section when "Generate with AI" tab is active.
 
 ### Dialogs and UI primitives
-- `src/components/ConfirmSendDialog.tsx` — confirmation modal before sending (uses `src/components/ui/modal.tsx`)
 - `src/components/ui/modal.tsx` — base modal with backdrop, close button, optional step indicator
 - `src/components/ui/button.tsx` — uses class-variance-authority; variants: default, outline, destructive
 - `src/components/ui/input.tsx`, `textarea.tsx`, `label.tsx`, `checkbox.tsx` — base form elements
@@ -56,9 +55,11 @@ Modern, clean, minimal. Think Linear or Vercel's dashboard aesthetic.
 
 3. **AI mode toggle** — "Create manually" / "Generate with AI" are two adjacent buttons that act like a tab switcher (`aria-pressed` is already set). Style the active state clearly.
 
-4. **Send Quiz button** — primary CTA at the bottom of the form. Should be visually prominent (full-width on mobile, or large on desktop).
+4. **Create Quiz button** — primary CTA at the bottom of the form. Should be visually prominent (full-width on mobile, or large on desktop).
 
 5. **QuestionItem error indicator** — a red dot (●) appears in the question header when that question has validation errors while collapsed. Make this subtle but noticeable (small badge or icon).
+
+6. **Host QR code** — keep the QR code on a white background with its padding, so phone cameras can scan it in any theme.
 
 ## Accessibility Constraints (do not break)
 - All focus rings must remain visible — do not use `outline: none` without a replacement
@@ -66,4 +67,4 @@ Modern, clean, minimal. Think Linear or Vercel's dashboard aesthetic.
 - Do not remove `aria-*` attributes, `role` attributes, or `<label>` associations
 - Do not remove `id` attributes used for `aria-describedby` / `aria-controls` / `aria-labelledby`
 - The `sr-only` class is used for screen-reader-only text — do not remove it
-- `aria-live="polite"` regions exist for submission status and AI generation status — do not remove them
+- `aria-live="polite"` regions exist for submission status, AI generation status and the lobby player lists — do not remove them

@@ -34,22 +34,22 @@ class RateLimiterTest {
     }
 
     @Test
-    void shouldAllowTwentySmsSubmissionsFromSameIp() {
+    void shouldAllowHundredJoinsFromSameIp() {
         String ip = "10.0.0.3";
-        for (int i = 0; i < 20; i++) {
-            assertTrue(rateLimiterService.tryConsumeSmsSubmission(ip),
-                    "SMS request " + (i + 1) + " should be allowed");
+        for (int i = 0; i < 100; i++) {
+            assertTrue(rateLimiterService.tryConsumeJoin(ip),
+                    "Join request " + (i + 1) + " should be allowed");
         }
     }
 
     @Test
-    void shouldBlockTwentyFirstSmsSubmissionFromSameIp() {
+    void shouldBlockHundredAndFirstJoinFromSameIp() {
         String ip = "10.0.0.4";
-        for (int i = 0; i < 20; i++) {
-            rateLimiterService.tryConsumeSmsSubmission(ip);
+        for (int i = 0; i < 100; i++) {
+            rateLimiterService.tryConsumeJoin(ip);
         }
-        assertFalse(rateLimiterService.tryConsumeSmsSubmission(ip),
-                "21st SMS request should be blocked");
+        assertFalse(rateLimiterService.tryConsumeJoin(ip),
+                "101st join request should be blocked");
     }
 
     @Test
@@ -61,13 +61,13 @@ class RateLimiterTest {
     }
 
     @Test
-    void shouldTrackQuizAndSmsBucketsSeparately() {
+    void shouldTrackQuizAndJoinBucketsSeparately() {
         String ip = "10.0.0.7";
         // Exhaust quiz bucket
         for (int i = 0; i < 10; i++) {
             rateLimiterService.tryConsumeQuizSubmission(ip);
         }
-        // SMS bucket should still be available
-        assertTrue(rateLimiterService.tryConsumeSmsSubmission(ip));
+        // Join bucket should still be available
+        assertTrue(rateLimiterService.tryConsumeJoin(ip));
     }
 }

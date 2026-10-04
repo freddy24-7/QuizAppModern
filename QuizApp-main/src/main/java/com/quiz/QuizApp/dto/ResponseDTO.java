@@ -4,8 +4,7 @@ import lombok.Data;
 
 @Data
 public class ResponseDTO {
-    private String phoneNumber;
-    private String username;
+    private Long participantId;
     private Long questionId;
     private String selectedAnswer;
     private Long quizId;

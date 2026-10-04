@@ -25,6 +25,8 @@ public class Quiz {
 
     private Boolean closed = false;
 
+    private Boolean started = false;
+
     @CreationTimestamp
     private LocalDateTime startTime;
 
@@ -38,5 +40,9 @@ public class Quiz {
 
     public boolean isClosed() {
         return Boolean.TRUE.equals(closed);
+    }
+
+    public boolean isStarted() {
+        return Boolean.TRUE.equals(started);
     }
 }

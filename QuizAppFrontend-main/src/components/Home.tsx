@@ -37,7 +37,7 @@ const Home = () => {
                 <span className="block mt-2 text-white/90">in seconds.</span>
               </h2>
               <p className="text-white/75 text-base md:text-lg leading-relaxed max-w-lg mx-auto lg:mx-0 mt-5">
-                Build quizzes manually or let AI generate them, then send to friends and family via SMS.
+                Build quizzes manually or let AI generate them, then let friends and family join by scanning a QR code.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto lg:mx-0 mt-10">
@@ -100,7 +100,7 @@ const Home = () => {
       <div className="w-full py-10 px-6">
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-sm text-muted-foreground">
-            No account needed &mdash; create a quiz and share it instantly via SMS.
+            No account needed &mdash; create a quiz and share it instantly with a QR code.
           </p>
         </div>
       </div>
